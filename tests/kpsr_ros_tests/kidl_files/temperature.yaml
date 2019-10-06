@@ -1,0 +1,16 @@
+class_name: kpsr::sensors::Temperature
+middlewares:
+    - type: ROS
+      project_name: sensor_msgs
+      already_exists: true
+      class_name: Temperature
+      include_file: <sensor_msgs/Temperature.h>
+      ignore_fields:
+        -seq
+fields:
+    - name: seq
+      type: uint32
+    - name: temperature
+      type: float64
+    - name: variance
+      type: float64

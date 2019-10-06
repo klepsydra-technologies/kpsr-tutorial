@@ -1,0 +1,11 @@
+build/**
+**/build
+build_ros/**
+**/build_ros
+Config.cmake
+*.user
+**/**/config.h
+gen/**
+gen
+!.gitignore
+*~

@@ -137,5 +137,5 @@ find_package(Threads REQUIRED)
 # ADD SUB FOLDERS
 ######################################################################################
 ADD_SUBDIRECTORY(modules)
-ADD_SUBDIRECTORY(examples)
 ADD_SUBDIRECTORY(tests)
+ADD_SUBDIRECTORY(examples)

@@ -17,12 +17,9 @@ middlewares like ROS, ZMQ or DDS.
 * Ubuntu 14.04 or above
 * Google Tests (https://github.com/klepsydra-technologies/googletest)
 * ROS Indigo or above (optional)
-* ZMQ 3 or above (optional)
 * DDS (optional)
 * Cmake 3.5.1 or above
 * gcc for C++11 5.4.0 or above.
-* Doxygen (optional)
-* Moxygen (https://github.com/sourcey/moxygen) (optional)
 
 Note that Google Tests is pulled in automatically when installing this project and does not need separate installation.
 
@@ -66,6 +63,7 @@ mkdir build
 cd build
 cmake ..
 make
+make test
 ```
 
 The cmake has the following options:

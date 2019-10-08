@@ -149,6 +149,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${KLEPSYDRA_INCLUDE_DIRS}
   ${KPSR_INCLUDE_PATH}
+  include
 )
 
 link_directories(${KLEPSYDRA_CORE_LIBRARIES})
@@ -170,6 +171,7 @@ link_directories(${KPSR_LIBRARY_PATH})
 # Declare a C++ executable
 add_executable(${PROJECT_NAME} src/example_ros.cpp)
 
+add_executable(${PROJECT_NAME}_identity src/example_ros_identity.cpp src/control_service_ros.cpp include/control_service_ros.h)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -182,6 +184,12 @@ target_link_libraries(${PROJECT_NAME}
   atomic
 )
 
+target_link_libraries(${PROJECT_NAME}_identity
+  ${catkin_LIBRARIES}
+  kpsr_tutorial
+  ${KLEPSYDRA_CORE_LIBRARIES}
+  atomic
+)
 #############
 ## Install ##
 #############
@@ -198,6 +206,12 @@ target_link_libraries(${PROJECT_NAME}
 
 ## Mark executables and/or libraries for installation
 install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS ${PROJECT_NAME}_identity
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

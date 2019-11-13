@@ -1,8 +1,10 @@
-[![klepsydra logo](../images/klepsydra_logo.jpg)](http://www.klepsydra.org)
+<p align="right">
+  <img width="25%" height="25%"src="../images/klepsydra_logo.jpg">
+</p>
 
-[Previous Tutorial: ROS connector](./TutorialROS.md)
+[Previous Tutorial: ROS connector](./chapter3_part3.md)
 
-# DDS connector
+# Chapter 3. Part IV DDS connector
 
 In this case, we treat the case where sensor messages are being
 broadcast using DDS and the middleware used is DDS. However, as we

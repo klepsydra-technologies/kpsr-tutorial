@@ -1,8 +1,10 @@
-[![klepsydra logo](../images/klepsydra_logo.jpg)](http://www.klepsydra.org)
+<p align="right">
+  <img width="25%" height="25%"src="../images/klepsydra_logo.jpg">
+</p>
 
-[Previous Tutorial: Core functionality](./Tutorial1.md)
+[Previous Tutorial: Core functionality](./chapter3_part1.md)
 
-# Event Loop
+# Chapter 3. Part II Event Loop
 
 In this case we deal with a slightly complex case where several
 threads can contain publishers whereas the subscribers are all
@@ -42,5 +44,5 @@ the first example, except for the changes brought about by using
 changes are necessary (compared to example1) to implement this. As can
 be seen, the changes are quite minimal.
 
-[Next Tutorial: Performance Monitoring](./Tutorial3.md)
+[Next Tutorial: Performance Monitoring](./chapter3_part3.md)
 

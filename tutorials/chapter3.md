@@ -1,6 +1,9 @@
-[![klepsydra logo](./images/klepsydra_logo.jpg)](http://www.klepsydra.org)
+<p align="right">
+  <img width="25%" height="25%"src="../images/klepsydra_logo.jpg">
+</p>
 
-# Tutorial (overview)#
+# Chapter 3. Code generation
+
 ## Introduction ##
 
 This tutorial considers an example case of a cubesat with two
@@ -93,9 +96,8 @@ sensors/controllers of the cubesat.
 
 ## Specific tutorials for each case:
 
-- [Tutorial for basic case, using no middlewares](./tutorials/Tutorial1.md)
-- [Tutorial for basic case, ensuring subscribers are single threaded & thread-safe](./tutorials/Tutorial2.md)
-- [Tutorial for basic case, with environments and additional performance monitoring](./tutorials/Tutorial3.md)
-- [Tutorial with ROS](./tutorials/TutorialROS.md)
-- [Tutorial with DDS](./tutorials/TutorialDDS.md)
+- [Tutorial for basic case, using no middlewares](./chapter3_part1.md)
+- [Tutorial for basic case, ensuring subscribers are single threaded & thread-safe](./chapter3_part2.md)
+- [Tutorial with ROS](./chapter3_part3.md)
+- [Tutorial with DDS](./chapter3_part4.md)
 

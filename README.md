@@ -1,14 +1,17 @@
 <p align="right">
-  <img width="25%" height="25%"src="../images/klepsydra_logo.jpg">
+  <img width="25%" height="25%"src="./images/klepsydra_logo.jpg">
 </p>
 
 # kpsr-tutorial
 
-Public tutorial for using Klepsydra API. See the file
-[Tutorial](./Tutorial.md) to see a step by step tutorial on how to
-start with a small application and build up to integrate with
+Public tutorial for using Klepsydra API. It consists of three chapters:
+
+* [Chapter 1](./tutorials/chapter1.md) covers the core API of Klepsydra.
+* Chapter 2. (Currently work in progress). Covers the ROS and DDS connection API.
+* [Chapter 3](./tutorials/chapter3.md) cover the code generator tool. It shows how to create a small application and build up to integrate with
 middlewares like ROS, ZMQ or DDS.
 
+Each chapter has its corresponding code in the [examples](./example) folder.
 
 # Installation Instructions
 

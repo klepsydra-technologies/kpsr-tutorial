@@ -20,6 +20,7 @@
 
 # Add module code
 add_subdirectory(core)
+add_subdirectory(chapter1)
 IF(KPSR_WITH_DDS)
   add_subdirectory(dds_mdlw)
 ENDIF()

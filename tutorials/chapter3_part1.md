@@ -1,6 +1,8 @@
-[![klepsydra logo](../images/klepsydra_logo.jpg)](http://www.klepsydra.org)
+<p align="right">
+  <img width="25%" height="25%"src="../images/klepsydra_logo.jpg">
+</p>
 
-# Core functionality
+# Chapter 3. Part I Core functionality
 
 In this case we deal with the case involving no middlewares. We deal
 with simple C++ objects being used to transmit and receive
@@ -90,5 +92,5 @@ of the subscriber, we must ensure that there is a mutex lock
 protecting it, as we cannot guarantee that two subscribers will never
 be triggered simultaneously.
 
-[Next Tutorial: Event Loop](./Tutorial2.md)
+[Next Tutorial: Event Loop](./chapter3_part2.md)
 

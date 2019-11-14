@@ -1,8 +1,11 @@
-[![klepsydra logo](../images/klepsydra_logo.jpg)](http://www.klepsydra.org)
+<p align="right">
+  <img width="25%" height="25%"src="../images/klepsydra_logo.jpg">
+</p>
 
-[Previous Tutorial: Performance Monitoring](./Tutorial3.md)
 
-# ROS connector
+[Previous Tutorial: Performance Monitoring](./chapter3_part2.md)
+
+# Chapter 3. Part III ROS connector
 
 In this case, we treat the case where sensor messages are being
 broadcast using ROS and the middleware used is ROS. However, as we
@@ -75,7 +78,7 @@ Similarly, the `toRosProvider` allows us to declare a klepsydra
 publisher that publishes the status event data which can then be
 accessed from ROS using a ROS subscriber.
 
-We pass these subsribers and publishers (using the event loop
+We pass these subscribers and publishers (using the event loop
 middleware provider, as in the 3rd example previously) to the control
 service class and the application service class.
 
@@ -117,5 +120,5 @@ run directly. (Note, the example expects a valid ROS master running on
 the network. You can easily start it by typing `roscore` in a new
 shell.)
 
-[Next Tutorial: DDS connector](./TutorialDDS.md)
+[Next Tutorial: DDS connector](./chapter3_part4.md)
 

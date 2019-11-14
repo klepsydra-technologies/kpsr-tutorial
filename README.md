@@ -11,7 +11,7 @@ Public tutorial for using Klepsydra API. It consists of three chapters:
 * [Chapter 3](./tutorials/chapter3.md) cover the code generator tool. It shows how to create a small application and build up to integrate with
 middlewares like ROS, ZMQ or DDS.
 
-Each chapter has its corresponding code in the [examples](./example) folder.
+Each chapter has its corresponding code in the [examples](./examples) folder.
 
 # Installation Instructions
 

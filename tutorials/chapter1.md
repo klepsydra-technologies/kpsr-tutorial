@@ -28,7 +28,7 @@ Klepsydra API is split into main groups:
 * **Application API**. A simple Publisher / Subscriber API, this API is used by the application or customer code to build the functionality.
 * **Composition API**. This API is used to create and assembly publisher subscriber instances. Examples are: EventLoop, ROS Connector, etc.
 
-This tutorial does not intend to cover the complete API of Klepsydra Core, but to explain the key programming features of it. For a full comprehensive description of the API, please refer to the api-doc folder of the kpsr-core repository. @TODO: add link
+This tutorial does not intend to cover the complete API of Klepsydra Core, but to explain the key programming features of it. For a full comprehensive description of the API, please refer to the [api-doc](https://github.com/klepsydra-technologies/kpsr-core/tree/master/api-doc) folder of the kpsr-core repository.
 
 ## Example 1: The "Hello world!" example.
 
@@ -313,7 +313,7 @@ int main() {
 
 With this code, we have ensured that any vector published into the eventloop will produce no memory allocations.
 
-The last argument, a clone function that the publisher will use instead of standard copy, is also to increase performance. This is covered in depth in the vision tutorial @TODO: Link.
+The last argument, a clone function that the publisher will use instead of standard copy, is also to increase performance. This is covered in depth in the [vision tutorial](https://github.com/klepsydra-technologies/kpsr-vision-ocv-tutorial).
 
 ## Example 5: The data multiplexer.
 
@@ -369,7 +369,6 @@ int main() {
     kpsr::Publisher<std::vector<float>> * vectorPublisher = dataMultiplexer.getPublisher();
 
     eventloop.start();
-    dataMultiplexer.start();
 
     {
         SumVectorData sumVectorData(
@@ -402,7 +401,6 @@ int main() {
        t.join();
     }
 
-    dataMultiplexer.stop();
     eventloop.stop();
 }
 ```
@@ -416,8 +414,9 @@ As it can be seen in this code, the ```kpsr::high_perf::DataMultiplexer``` has a
 	* Listeners in data multiplexer are invoked independently of each other.
 	* Data needed by a listener will be kept in the buffer until all listeners  are done processing it
 	* Listener will have access to the latest data only. If a listener is slow in processing, data multiplexer will skip old data and only provide it with the latest one.
+* There is no start or stop methods. The start is implicitly triggered when a listener is registered in the ```Subscriber```.
 
-There is an extensive use of the DataMultiplexer in the vision tutorial @TODO: Link.
+There is an extensive use of the DataMultiplexer in the [vision tutorial](https://github.com/klepsydra-technologies/kpsr-vision-ocv-tutorial).
 
 ## Example 6: Working with services
 
@@ -425,9 +424,22 @@ We are going to introduce now the API for ```kpsr::Service```, ```kpsr::Environm
 
 ### Service
 
-The ```kpsr::Service``` allows one to define a task which will run in the background, which can be administered remotely and/or which need to be run at regular intervals. The api expects us to define the custom start, stop, execute function as per the intended application. The public API functions to these are the startup(), shutdown() and runOnce().
+The ```kpsr::Service``` allows one to define a task which will run in the background, which can be administered remotely and/or which need to be run at regular intervals. The ```kpsr::Service``` class is used by means of inheritance. I.e., custom services must extend from this class. ```kpsr::Service``` has three pure virtual methods:
+
+* ```start()```, 
+* ```stop()```, 
+* ```execute()``` 
+
+That custom services need to implement. These functions are never invoked directly, but via their public counterparts or public API functions:
+
+* ```startup()```, 
+* ```shutdown()``` and 
+* ```runOnce()```.
+
+Very important to know is that the ```runOnce``` invokes the ```execute``` method when the service is started, i.e., once the ```startup``` function have been called.
 
 Let's start with the most basic publisher as a service.
+
 ```cpp
 class SimplePublisherService : public Service {
 public:
@@ -449,6 +461,7 @@ private:
     kpsr::Publisher<std::string>* _publisher;
 }
 ```
+
 Now this publisher service can be started using its startup() command, stopped using shutdown() command, and the runOnce() command will publish the intended message. Note that the publisher does not need any setup procedure and that is why the start and stop functions are empty.
 
 Notice the constructor call of the service. The Service class needs three parameters: a pointer to kpsr::Environment, a std::string containing the name of the service, and a bool (default to true) to signify if service is master or not. The Environment class will be explained in the next section. In these example we don't use any environments and the `nullptr` is passed instead.
@@ -549,6 +562,7 @@ If we see the previous example, it becomes clear that the threshold value for th
 Klepsydra provides a `kpsr::Environment` API that provides this facility. It allows us to isolate the services and other code from the environment in which it will run. The `kpsr::mem::MemEnv` is one such implementation providing a in-memory environment used specially for unit testing. Also, the `kpsr::YamlEnvironment` (available when Klepsydra is compiled with YAML support), allows setting up an environment using a YAML file. With this, the application can be run in different environments just by providing a different YAML configuration file.
 
 Using the environment api, the relevant ControlService code changes as shown below. We only present the functions that change, and also add another constraint by providing an upper threshold.
+
 ```cpp
 
     ControlService(kpsr::Subscriber<float> * batterySubscriber, kpsr::Environment * env)
@@ -572,6 +586,12 @@ Using the environment api, the relevant ControlService code changes as shown bel
         _batterySubscriber->registerListener("batteryListener", listenerFunction);
     }
 ```
+
+### Managed Services
+
+Klepsydra provides a `kpsr::ManagedService` class that starts or stops a service depending on the `kpsr::SystemEventData` value that is sent. This allows us to connect one service to another. For example, in the previous example, the actual application code would be a managed service, and it will respond to the messages sent by the control service appropriately.
+
+#### A message type to control services
 
 Klepsydra offers a special datatype ```kpsr::SystemEventData``` for the specific purpose of communicating if a certain service or application has to be started or stopped. We can thus improve the previous control by using it as shown below::
 
@@ -619,9 +639,7 @@ private:
 ```
 The application that needs to be stopped can now by handled by using a subscriber to the status publisher. This also makes testing the Control Service easier. The unit test `example6b.cpp` in the tests folder provides an example of usage of the environment and how to test the internal logic of the Control Service.
 
-### Managed Service
-
-Klepsydra provides a `kpsr::ManagedService` class that starts or stops a service depending on the `kpsr::SystemEventData` value that is sent. This allows us to connect one service to another. For example, in the previous example, the actual application code would be a managed service, and it will respond to the messages sent by the control service appropriately.
+#### Managed Service Example
 
 The managed service class constructor needs as input parameters the environment pointer, a subscriber of SystemEventData messages, and a name for the class. A simple managed service could be as follows:
 

@@ -18,11 +18,6 @@
 #
 #****************************************************************************
 
-# Add module code
-add_subdirectory(core)
-add_subdirectory(chapter1)
-add_subdirectory(chapter2)
 IF(KPSR_WITH_DDS)
-  add_subdirectory(dds_mdlw)
+  add_subdirectory(dds_examples)
 ENDIF()
-

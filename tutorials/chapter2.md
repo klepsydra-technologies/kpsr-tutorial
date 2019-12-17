@@ -263,4 +263,58 @@ int main(int argc, char **argv) {
 
 ### DDS
 
+When Klepsydra is compiled and installed with DDS support, three DDS specific libraries are installed: `kpsr_dds_serialization_datamodel`, `kpsr_dds_core` and `kpsr_dds_core_datamodel`, and are available to be linked against using the environment variable `KLEPSYDRA_DDS_LIBRARIES`. The `kpsr_dds_serialization` provides DDS compatible types for primitive data types. As DDS requires message data types to be specified in an *.idl file, Klepsydra provides the primitive data types in wrapped formats which also include the sequence number field. The `kpsr_dds_serialization` also provides mapping functions to conveniently transform data from the primitive type to the dds specific type. 
+
+#### Sending / receiving data - the HelloWorld example:
+
+The HelloWorld example for DDS can then use the same SimplePublisher class as shown for ROS and the complete example would be as shown below:
+
+```cpp
+
+int main(int argc, char **argv) {
+    dds::domain::DomainParticipant dp(0);
+    dds::pub::Publisher publisher(dp);
+    dds::sub::Subscriber subscriber(dp);
+
+    dds::topic::Topic<kpsr_dds_serialization::StringData> stringDataTopic(dp, "stringData");
+    dds::pub::DataWriter<kpsr_dds_serialization::StringData> stringDataWriter(publisher, stringDataTopic);
+    dds::sub::DataReader<kpsr_dds_serialization::StringData> stringDataReader(subscriber, stringDataTopic);
+
+    kpsr::dds_mdlw::ToDDSMiddlewareProvider provider(nullptr);
+    kpsr::dds_mdlw::FromDDSMiddlewareProvider ddsProvider;
+
+    kpsr::Publisher<std::string> * stringDataPublisher =
+            provider.getToMiddlewareChannel<std::string, kpsr_dds_serialization::StringData>("stringData", 0, nullptr, &stringDataWriter);
+
+    SimplePublisher publisher(stringDataPublisher);
+
+    kpsr::high_performance::EventLoopMiddlewareProvider<16> stringDataSafeQueueProvider(nullptr);
+    stringDataSafeQueueProvider.start();
+    ddsProvider.registerToTopic("stringData", &stringDataReader, true, stringDataSafeQueueProvider.getPublisher<std::string>("string", 0, nullptr, nullptr));
+
+    stringDataSafeQueueProvider.getSubscriber<std::string>("string")->registerListener("example", [](std::string &msg) {
+        std::cout << "Received message: " << msg << std::endl; });
+
+    simplePublisher.run();
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    stringDataSafeQueueProvider.getSubscriber<std::string>("string")->removeListener("example");
+    stringDataSafeQueueProvider.stop();
+    ddsProvider.unregisterFromTopic("stringData", &stringDataReader);
+}
+```
+
+* The first 6 lines show the standard method for setting up a DDS domain participant with its publisher, subscriber, topic, writer and  reader.
+* Next, we set up the ```kpsr::dds_mdlw::ToDDSMiddlewareProvider``` base factory for the Klepsydra publishers and the ```kpsr::dds_mdlw::FromDDSMiddlewareProvider``` base factory for the Klepsydra subscribers.
+* The publisher factory gives us the Klepsydra string publisher which will map to the DDS publisher. We can use this to create the SimplePublisher class instance.
+* Next we set up the Klepsydra event loop, in this case the ```kpsr::high_performance::EventLoopMiddlewareProvider``` as we are only running a simple test. Similar to examples in Chapter 1 of this tutorial, we can also use other high performance APIs that Klepsydra provides.
+* ```kpsr::dds_mdlw::FromDDSMiddlewareProvider``` allows us to connect Klepsydra to DDS subscribers using the `registerToTopic` function, similar to the ROS case. While the function is a templated function, we do not need to provide the template types (i.e the C++ data type, and the DDS specific type), since those can be deduced from the input parameters. The ```kpsr::dds_mdlw::FromDDSMiddlewareProvider::registerToTopic``` function requires 4 parameters - the topic name, the associated DDS Reader, the boolean to specify whether to remove read messages from DDS queue or not, and the internal klepsydra publisher. In this case, the internal publisher is obtained from the event loop.
+* Next, we attach the listener callback to the subscriber obtained from the event loop. With this, the klepsydra set up is done.
+As you can see from the code, the application we intended (publish "Hello World") remained unaffected by the middleware type. The class used in the ROS example was reused in the DDS example and the Klepsydra API allowed us to easily use it with DDS. Additionally, since the event loop used is the same (whether in ROS or DDS), we get the same advantages of the high performance API.
+
+#### DDS Env
+
+The ```kpsr::dds_mdlw::DDSEnv``` class is the Environment class built to share and access global data parameters over the DDS distributed environment. The Environment class defines the interface used by the ```kpsr::dds_mdlw::DDSEnv``` to access the parameters. These parameters are loaded from a YAML file into a YamlEnvironment class, and are made available to the DDS environment via a specific pair of DDS Reader/Writers. As a result, these parameters are accessible over the entire DDS environment, and any changes to these parameters are also visible to Klepsydra applications.
+
 ### ZMQ

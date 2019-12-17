@@ -18,11 +18,38 @@
 #
 #****************************************************************************
 
-# Add module code
-add_subdirectory(core)
-add_subdirectory(chapter1)
-add_subdirectory(chapter2)
-IF(KPSR_WITH_DDS)
-  add_subdirectory(dds_mdlw)
-ENDIF()
+SET(PROJ_NAME kpsr_${PROJ_MAIN_NAME}_chapter2_dds)
+PROJECT(${PROJ_NAME})
 
+Include (MacroConnext)
+find_package (Connext REQUIRED)
+SET (DEFINITIONS ${DEFINITIONS} " -DDDS_IMPLEMENTATION_${DDS_IMPLEMENTATION}")
+
+add_definitions (
+  ${Connext_DEFINITIONS}
+  ${DEFINITIONS}
+  )
+
+# Source
+#---------------------------------------------------#
+FILE(GLOB ${PROJ_NAME}_SRC
+    "./src/*.cpp"
+)
+
+FILE(GLOB ${PROJ_NAME}_HEADERS
+    "./include/*.h"
+)
+
+INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/include )
+INCLUDE_DIRECTORIES( ${Connext_INCLUDE_DIRS} )
+INCLUDE_DIRECTORIES( ${KLEPSYDRA_INCLUDE_DIRS} )
+
+
+ADD_EXECUTABLE(${PROJ_NAME} ${${PROJ_NAME}_HEADERS} ${${PROJ_NAME}_SRC} )
+
+TARGET_LINK_LIBRARIES(${PROJ_NAME}
+  ${KLEPSYDRA_CORE_LIBRARIES}
+  ${KLEPSYDRA_DDS_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT}
+  atomic
+)

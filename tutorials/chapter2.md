@@ -318,3 +318,81 @@ As you can see from the code, the application we intended (publish "Hello World"
 The ```kpsr::dds_mdlw::DDSEnv``` class is the Environment class built to share and access global data parameters over the DDS distributed environment. The Environment class defines the interface used by the ```kpsr::dds_mdlw::DDSEnv``` to access the parameters. These parameters are loaded from a YAML file into a YamlEnvironment class, and are made available to the DDS environment via a specific pair of DDS Reader/Writers. As a result, these parameters are accessible over the entire DDS environment, and any changes to these parameters are also visible to Klepsydra applications.
 
 ### ZMQ
+
+Klepsydra compiled with ZMQ support generates the `kpsr_zmq_core` library which is available to be linked by applications. In order to send or receive data using ZMQ, Klepsydra provides three ways of serializing data - JSON encoding, binary encoding, or raw data. When dealing with primitive data types, no additional steps are required and we show below how the previous simple example would be used.
+
+#### Hello World example
+
+```cpp
+
+int main (int argv, char ** argc) {
+
+    // Set up zmq specific options.
+    std::string serverUrl = "tcp://*:9001";
+    std::string topic = "example1";
+    zmq::context_t context (1);
+    zmq::socket_t publisher (context, ZMQ_PUB);
+    publisher.bind(serverUrl);
+    std::string clientUrl = "tcp://localhost:9001";
+    zmq::socket_t subscriber (context, ZMQ_SUB);
+    subscriber.connect(clientUrl);
+    subscriber.setsockopt(ZMQ_SUBSCRIBE, topic.c_str(), topic.size());
+
+    // ZMQ set up over, now our simple example:
+
+    kpsr::zmq_mdlw::ToZMQMiddlewareProvider toZMQMiddlewareProvider(nullptr, publisher);
+    kpsr::Publisher<std::string> * toZMQPublisher = toZMQMiddlewareProvider.getJsonToMiddlewareChannel<std::string>(topic, 0);
+    
+    SimplePublisher publisher(toZMQPublisher);
+    
+    //  Process 100 updates
+    kpsr::zmq_mdlw::FromZmqMiddlewareProvider _fromZmqMiddlewareProvider;
+    kpsr::zmq_mdlw::FromZmqChannel<std::string> * _jsonFromZMQProvider = _fromZmqMiddlewareProvider.getJsonFromMiddlewareChannel<std::string>(subscriber, 100);
+    _jsonFromZMQProvider->start();
+    
+    kpsr::high_performance::EventLoopMiddlewareProvider<16> stringDataSafeQueueProvider(nullptr);
+    stringDataSafeQueueProvider.start();
+
+    _jsonFromProvider->registerToTopic(topic, stringDataSafeQueueProvider.getPublisher<std::string>("string", 0, nullptr, nullptr));
+
+    stringDataSafeQueueProvider.getSubscriber<std::string>("string")->registerListener("example", [](std::string &msg) {
+        std::cout << "Received message: " << msg << std::endl; });
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    simplePublisher.run();
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    stringDataSafeQueueProvider.getSubscriber<std::string>("string")->removeListener("example");
+    stringDataSafeQueueProvider.stop();
+    _jsonFromZMQProvider->unregisterFromTopic(topic);
+    _jsonFromZMQProvider->stop();
+
+}
+```
+
+* The first block of code deals with the ZMQ set up. We declare the ZMQ publisher and subscribers here.
+* Next we define the factory for the publisher - ```kpsr::zmq_mdlw::ToZMQMiddlewareProvider```. This takes in the ZMQ publisher as an input parameter, and in case of the Klepsydra Community version, a nullptr.
+* The factory allows us to obtain the Klepsydra string publisher. Data sent to this Klepsydra publisher will be serialized into a JSON string using the Cereal library.
+```
+    kpsr::Publisher<std::string> * toZMQPublisher = toZMQMiddlewareProvider.getJsonToMiddlewareChannel<std::string>(topic, 0);
+```
+We could also use a binary serializer using the `getBinaryToMiddlewareChannel` or use raw data bytes using the `getVoidCasterToMiddlewareChannel` functions.
+* Next we set up the SimplePublisher, in the same way as examples in DDS and ROS.
+* Next two lines show how to set up a subscriber factory which will receive JSON strings.
+```
+    kpsr::zmq_mdlw::FromZmqMiddlewareProvider _fromZmqMiddlewareProvider;
+    kpsr::zmq_mdlw::FromZmqChannel<std::string> * _jsonFromZMQProvider = _fromZmqMiddlewareProvider.getJsonFromMiddlewareChannel<std::string>(subscriber, 100);
+```
+The subscriber factory in the ZMQ case is always the ```kpsr::zmq_mdlw::FromZmqMiddlewareProvider```, but depending on whether the serialization used was json or binary or raw data, we choose to use the appropriate type of provider. Here, since the json serialization is used, we use the `getJsonFromMiddlewareChannel` function, with the zmq subscriber and a poll period in milliseconds as input parameters.
+* The next step is to start the polling loop of the provider we obtained in the previous loop with a call to the `start` command.
+
+* We next set up the Event Loop for the internal publisher/subscriber pairs and start it.
+* We connect Klepsydra to ZMQ using the `registerToTopic` function of the provider, just as in the case with other middlewares. The `registerToTopic` needs 2 parameters here - the topic name and the internal klepsydra publisher.
+* Finally, we register the required callback listener to the subscriber provided by the event loop and run the example.
+* The final four lines provide us the steps required to stop Klepsydra objects safely.
+
+
+#### ZMQ Env
+
+The ```kpsr::zmq_mdlw::ZMQEnv``` is similar to the ```kpsr::dds_mdlw::DDSEnv``` in that it is a wrapper to the ```kpsr::YamlEnvironment``` class that holds the configuration for the environment (or global data parameters to be shared over the ZMQ network), along with an ability to share this data over the network. It functions similarly, allowing reading global parameters and writing to them too. The changes to the parameters are visible immediately to all Klepsydra applications that are on the ZMQ network. As it inherits from the ```kpsr::Environment``` class, the interface is the same as DDS or ROS.

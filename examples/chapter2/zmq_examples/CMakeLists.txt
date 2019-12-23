@@ -18,10 +18,33 @@
 #
 #****************************************************************************
 
-IF(KPSR_WITH_DDS)
-  add_subdirectory(dds_examples)
-ENDIF()
+SET(PROJ_NAME kpsr_zmq_${PROJ_MAIN_NAME})
+PROJECT(${PROJ_NAME})
 
-IF(KPSR_WITH_ZMQ)
-  add_subdirectory(zmq_examples)
-ENDIF()
+#find cppzmq wrapper, installed by make of cppzmq
+find_package(cppzmq)
+# Include directories with headers
+#---------------------------------------------------#
+INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/include )
+include_directories( ${cppzmq_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(${KLEPSYDRA_INCLUDE_DIRS})
+
+# Source
+#---------------------------------------------------#
+FILE(GLOB ${PROJ_NAME}_SRC
+    "src/*.cpp"
+)
+FILE(GLOB ${PROJ_NAME}_HEADERS
+    "include/*.h"
+)
+
+# Link libraries with Project
+#---------------------------------------------------#
+ADD_EXECUTABLE(${PROJ_NAME} ${${PROJ_NAME}_HEADERS} ${${PROJ_NAME}_SRC} )
+
+#---------------------------------------------------#
+TARGET_LINK_LIBRARIES(${PROJ_NAME}
+  ${KLEPSYDRA_CORE_LIBRARIES}
+  ${KLEPSYDRA_ZMQ_LIBRARIES}
+  cppzmq
+  atomic)

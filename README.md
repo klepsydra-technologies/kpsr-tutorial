@@ -7,7 +7,7 @@
 Public tutorial for using Klepsydra API. It consists of three chapters:
 
 * [Chapter 1](./tutorials/chapter1.md) covers the core API of Klepsydra.
-* Chapter 2. (Currently work in progress). Covers the ROS and DDS connection API.
+* [Chapter 2](./tutorials/chapter2.md) covers the ROS and DDS connection API.
 * [Chapter 3](./tutorials/chapter3.md) cover the code generator tool. It shows how to create a small application and build up to integrate with
 middlewares like ROS, ZMQ or DDS.
 

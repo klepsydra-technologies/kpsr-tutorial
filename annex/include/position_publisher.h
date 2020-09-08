@@ -1,7 +1,9 @@
 #ifndef POSITION_PUBLISHER_H
 #define POSITION_PUBLISHER_H
 
+#include <klepsydra/core/subscriber.h>
 #include <klepsydra/core/publisher.h>
+#include <numeric>
 
 class Position {
 public:
@@ -23,8 +25,11 @@ public:
 	void run() {
 		Position position(1, 2);
 		_publisher->publish(position);
+		std::thread::id this_id = std::this_thread::get_id();
+		std::cout << "the positionPublisher id is : " << this_id << std::endl;
 	}
 private:
 	kpsr::Publisher<Position> * _publisher;
 };
+
 #endif

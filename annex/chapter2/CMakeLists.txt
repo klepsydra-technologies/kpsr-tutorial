@@ -19,5 +19,5 @@
 #****************************************************************************
 
 # Add module code
-add_subdirectory(chapter1)
+add_subdirectory(adv_examples)
 

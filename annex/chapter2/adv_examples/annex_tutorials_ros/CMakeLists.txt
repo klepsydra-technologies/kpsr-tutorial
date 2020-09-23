@@ -104,7 +104,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES annex_tutorials_ros
+  LIBRARIES annex_tutorials_ros
   CATKIN_DEPENDS message_runtime roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
@@ -116,19 +116,20 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+ include
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/annex_tutorials_ros.cpp
-# )
+ add_library(${PROJECT_NAME}
+   src/talker_universal.cpp
+)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
@@ -145,17 +146,13 @@ include_directories(
 ## same as for the library above
 #add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(talker_spin src/talker_spin.cpp)
-target_link_libraries(talker_spin ${catkin_LIBRARIES})
-add_dependencies(talker_spin annex_tutorials_ros_generate_messages_cpp)
+add_executable(talker_universal src/talker_universal.cpp)
+target_link_libraries(talker_universal ${catkin_LIBRARIES})
+add_dependencies(talker_universal annex_tutorials_ros_generate_messages_cpp)
 
 add_executable(listener_spin src/listener_spin.cpp)
 target_link_libraries(listener_spin ${catkin_LIBRARIES})
 add_dependencies(listener_spin annex_tutorials_ros_generate_messages_cpp)
-
-add_executable(talker_async src/talker_async.cpp)
-target_link_libraries(talker_async ${catkin_LIBRARIES})
-add_dependencies(talker_async annex_tutorials_ros_generate_messages_cpp)
 
 add_executable(listener_async src/listener_async.cpp)
 target_link_libraries(listener_async ${catkin_LIBRARIES})
@@ -188,18 +185,18 @@ add_dependencies(listener_async annex_tutorials_ros_generate_messages_cpp)
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
-# install(TARGETS ${PROJECT_NAME}
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
-# )
+ install(TARGETS ${PROJECT_NAME}
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+ )
 
 ## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+ install(DIRECTORY include/${PROJECT_NAME}/
+   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 #   FILES_MATCHING PATTERN "*.h"
 #   PATTERN ".svn" EXCLUDE
-# )
+ )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES

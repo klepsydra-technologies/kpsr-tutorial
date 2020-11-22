@@ -18,6 +18,37 @@
 #
 #****************************************************************************
 
-# Add module code
-add_subdirectory(chapter1)
+find_package(Klepsydra)
 
+cmake_minimum_required(VERSION 2.8.11)
+SET(PROJ_NAME kpsr_${PROJ_MAIN_NAME}_annex)
+PROJECT(${PROJ_NAME})
+
+# Include directories with headers
+#---------------------------------------------------#
+INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/include )
+INCLUDE_DIRECTORIES( ${KLEPSYDRA_INCLUDE_DIRS} )
+
+ADD_EXECUTABLE(${PROJ_NAME}_7 ${${PROJ_NAME}_HEADERS} src/example7.cpp )
+
+TARGET_LINK_LIBRARIES(${PROJ_NAME}_7
+  ${KLEPSYDRA_CORE_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT}
+  atomic
+  )
+
+ADD_EXECUTABLE(${PROJ_NAME}_8 ${${PROJ_NAME}_HEADERS} src/example8.cpp )
+
+TARGET_LINK_LIBRARIES(${PROJ_NAME}_8
+  ${KLEPSYDRA_CORE_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT}
+  atomic
+  )
+
+ADD_EXECUTABLE(${PROJ_NAME}_9 ${${PROJ_NAME}_HEADERS} src/example9.cpp )
+
+TARGET_LINK_LIBRARIES(${PROJ_NAME}_9
+  ${KLEPSYDRA_CORE_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT}
+  atomic
+  )

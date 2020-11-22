@@ -122,6 +122,8 @@ This version of the main is slighlty different from the previous one in the foll
 * The instatiation of the ```EventLoopMiddlewareProvider``` does not take any template, nor the ```std::function``` pair for the smart object pool. The reason for that is that the ```EventLoop``` is a general memory sharing system that can handle data of any type, it only requires the size of the ring buffer as template parameter. It is only when invoking ```getPublisher``` and ```getSubscriber``` that types need to be specified. The ```EventEmitter``` can only handle one publisher / subcsriber pair, this is why the templating and smart pool configuration happen at the declaration and construction level.
 * Another important difference is that the event loop requires starting and stopping. The start will create and start the listening thread, which is the only thread that will handle all the listeners associated to all subscribers. It is important that, before stopping, all listeners have been removed.
 
+Please refer to [Annex 1](../annex/annex1.md) for more examples related to eventloop processes.
+
 ## Example 3: Unit testing. 
 
 Now, lets take a step further in the concept of separation of the application API and composition API. In asynchronous programming, methods will publish data instead of returning data:

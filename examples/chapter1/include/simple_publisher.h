@@ -31,6 +31,7 @@ public:
    
    void run() {
       _publisher->publish("Hello World!");
+      std::cout << "SimplePublisherClass (publisher) thread ID: " << std::this_thread::get_id() << std::endl;
    }
 
 private:

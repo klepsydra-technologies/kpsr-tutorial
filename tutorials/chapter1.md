@@ -494,6 +494,7 @@ private:
 A complete example using these two services is given below:
 ```cpp
 #include <iostream>
+#include <chrono>
 #include "simple_publisher_service.h"
 #include "simple_subscriber_service.h"
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
@@ -504,13 +505,17 @@ int main() {
     SimplePublisherService publisherService(provider.getPublisher<std::string>("example2", 0, nullptr, nullptr));
     SimpleSubscriberService subscriberService(provider.getSubscriber<std::string>("example2"));
 
-    publisherService.startup();
+    provider.start();
     subscriberService.startup();
+    publisherService.startup();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     publisherService.runOnce();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
     publisherService.shutdown();
     subscriberService.shutdown();
+    provider.stop();
 }
 ```
 

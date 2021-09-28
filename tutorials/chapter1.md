@@ -150,8 +150,7 @@ private:
    kpsr::Publisher<float> * _publisher;
    
    float calculateSum(const std::vector<float> & event) {
-      // TODO: use lambda to calculate this sum
-      return 0f;
+      return std::accumulate(event.begin(), event.end(), 0.0f);
    }
 }
 ```

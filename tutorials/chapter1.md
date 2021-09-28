@@ -45,6 +45,7 @@ public:
    
    void run() {
       _publisher->publish("Hello World!");
+      std::cout << "SimplePublisherClass (publisher) thread ID: " << std::this_thread::get_id() << std::endl;
    }
 
 private:
@@ -57,20 +58,27 @@ There are two important elements in this class that are always required when pro
 * The ```publish``` method expects a const reference to the publishing object. All publisher implementations make a copy of this object before proceeding to the actual publication. There is another API for publication that skip the copy, that we will cover later.
 * Application code always use pointers to ```kpsr::Publisher```. This is done in order to keep the application independent of the implementation of the publisher. It is not only a good practice, but also necessary when building unit tests for classes like this example. The same principle applies to the ```kpsr::Subscriber``` and ```kpsr::Environment```.
 
+It is also important to note that the IDs of the different threads that are running during the execution of each example are printed out in order to clarify the number of threads involved in each example. Then, this is de purpose of the line where the thread ID is printed out in class SimplePublisher.
+
 Let's now build simple main that makes use of this example class:
 
 ```cpp
 #include <iostream>
 #include "simple_publisher.h"
+
 #include <klepsydra/core/event_emitter_middleware_provider.h>
 
 int main() {
+   
+   std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
+   
    kpsr::EventEmitterMiddlewareProvider<std::string> provider(nullptr, "tutorial_app_api_example1", 0, nullptr, nullptr);
    
    SimplePublisher simplePublisher(provider.getPublisher());
 
    provider.getSubscriber()->registerListener("example1", [](const std::string & message) {
          std::cout << "Message received: " << message << std::endl;
+ 	 std::cout << "Provider (subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
       }
    );
    
@@ -90,6 +98,9 @@ This examples shows several features of Klepsydra already. Let's have a look at 
 *    ```provider.getSubscriber()->registerListener``` is the API to register a consumer for events in Klepsydra. A name and a lambda function are the arguments.
 *    ```provider.getSubscriber()->removeListener``` is the API to remove a consumer from the ```Subcriber```. In order to avoid unexpected behaviour at shutting down applications, it is stringly recommended to remove listeners before stopping threads or middleware providers.
 
+There is only one thread running which is the main thread.
+
+
 ## Example 2: The eventloop
 
 As suggested before, the ```EventEmitterMiddlewareProvider``` is a test only provider, so let's change it for one of the two main high performance providers in Klepsydra: **The Event Loop**:
@@ -102,10 +113,13 @@ As suggested before, the ```EventEmitterMiddlewareProvider``` is a test only pro
 int main() {
     kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
 
+    std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
+
     eventloop.start();
     eventloop.getSubscriber<std::string>("example2")->registerListener("listener",
                                                              [](const std::string & message) {
                                                                  std::cout << "Message received: " << message << std::endl;
+    								 std::cout << "Eventloop (subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
                                                              });
     std::this_thread::sleep_for(std::chrono::milliseconds(1)); // Ensures listener has been registered before publisher runs.
 
@@ -121,7 +135,15 @@ int main() {
 This version of the main is slighlty different from the previous one in the following elements:
 
 * The instatiation of the ```EventLoopMiddlewareProvider``` does not take any template, nor the ```std::function``` pair for the smart object pool. The reason for that is that the ```EventLoop``` is a general memory sharing system that can handle data of any type, it only requires the size of the ring buffer as template parameter. It is only when invoking ```getPublisher``` and ```getSubscriber``` that types need to be specified. The ```EventEmitter``` can only handle one publisher / subcsriber pair, this is why the templating and smart pool configuration happen at the declaration and construction level.
-* Another important difference is that the event loop requires starting and stopping. The start will create and start the listening thread, which is the only thread that will handle all the listeners associated to all subscribers. It is important that, before stopping, all listeners have been removed.
+* Another important difference is that the event loop requires starting and stopping. The start will create and start the listening thread, which is the only thread that will handle all the listeners
+
+In this case, the number of threads increase. There are two threads running:
+
+* The main thread
+* The listener thread
+
+
+ associated to all subscribers. It is important that, before stopping, all listeners have been removed.
 
 ## Example 3: Unit testing. 
 
@@ -138,6 +160,8 @@ public:
          _subscriber->registerListener("sum_vector", [this](const std::vector<float> & event) {
             float sum = calculateSum(event);
             _publisher->publish(sum);
+            std::cout << "SumVectorDataClass (subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
+
          });
       }
       
@@ -150,7 +174,8 @@ private:
    kpsr::Publisher<float> * _publisher;
    
    float calculateSum(const std::vector<float> & event) {
-      return std::accumulate(event.begin(), event.end(), 0.0f);
+       return std::accumulate(event.begin(), event.end(), 0.0f);
+      return 0f;
    }
 }
 ```
@@ -207,6 +232,9 @@ Let us build now a running application for this class:
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
 
 int main() {
+
+   std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
+   
    kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
    
    kpsr::Publisher<std::vector<float>> * vectorPublisher = eventloop.getPublisher<std::vector<float>>("vector", 0, nullptr, nullptr);
@@ -220,6 +248,7 @@ int main() {
    
       eventloop.getSubscriber<float>()->registerListener("sum", [](const float & message) {
             std::cout << "Sum received: " << message << std::endl;
+	    std::cout << "Eventeloop (subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
          }
       );
       
@@ -231,6 +260,7 @@ int main() {
             }
             vectorPublisher->publish(vector);
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
+	    std::cout << "t (publisher) thread ID: " << std::this_thread::get_id() << std::endl;
          }
        });
    
@@ -242,6 +272,12 @@ int main() {
 ```
 
 This example shows a slightly more advanced use of the event loop. In this case, there are two threads, one that publishes vector data, this somehow resembles an external source of data. Then there is the event loop thread that consumes the data, but in the case, the sum vector class also publishes data to the eventloop. This is one of the main features of the event loop: being able to receive data from multiple sources, including the consumer thread. This behaviour, instrumental in asyc programming, can be found in other event loops, like the Event Emitter in NodeJs (TODO LINK).
+
+Then, there are three threads running:
+
+* The main thread
+* The listener thread
+* The publisher t thread t
 
 Another important point of this example is that we have shown the use of the same class in two different middleware provider setups: unit test and real application. This one of the main programmatic concepts in Klepsydra. The main principle behind is to have complete separation of application and composition code.
 
@@ -328,8 +364,9 @@ public:
        , _publisher(publisher)
        {
           _subscriber->registerListener("mod_vector", [this](const std::vector<float> & event) {
-             float module = calculateModule(event);
-             _publish->publish(module);
+          	float module = calculateModule(event);
+          	_publish->publish(module);
+	  	std::cout << "ModuleVectorDataClass (subscriber - mod) thread ID: " << std::this_thread::get_id() << std::endl;
           });
        }
 
@@ -342,7 +379,7 @@ private:
     kpsr::Publisher<float> * _publisher;
 
     float calculateModule(const std::vector<float> & event) {
-      return sqrt(std::inner_product(event.begin(), event.end(),event.begin(), 0.0f));
+       return sqrt(std::inner_product(event.begin(), event.end(),event.begin(), 0.0f));
    }
 }
 ```
@@ -375,6 +412,7 @@ int main() {
             eventloop.getPublisher<float>("sum", 0, nullptr, nullptr));
         eventloop.getSubscriber<float>()->registerListener("sum", [](const float & message) {
             std::cout << "Sum received: " << message << std::endl;
+	    std::cout << "Eventloop (subscriber - sum) thread ID: " << std::this_thread::get_id() << std::endl;
          }
       );
 
@@ -384,6 +422,7 @@ int main() {
 
       eventloop.getSubscriber<float>()->registerListener("mod", [](const float & message) {
             std::cout << "Module received: " << message << std::endl;
+	    std::cout << "Eventloop (subscriber - mod) thread ID: " << std::this_thread::get_id() << std::endl;
          }
       );
       std::thread t([&vectorPublisher]() {
@@ -394,12 +433,14 @@ int main() {
             }
             vectorPublisher->publish(vector);
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
+	    std::cout << "t (publisher) thread ID: " << std::this_thread::get_id() << std::endl;
          }
       });
 
        t.join();
     }
 
+    std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
     eventloop.stop();
 }
 ```
@@ -414,6 +455,13 @@ As it can be seen in this code, the ```kpsr::high_perf::DataMultiplexer``` has a
 	* Data needed by a listener will be kept in the buffer until all listeners  are done processing it
 	* Listener will have access to the latest data only. If a listener is slow in processing, data multiplexer will skip old data and only provide it with the latest one.
 * There is no start or stop methods. The start is implicitly triggered when a listener is registered in the ```Subscriber```.
+
+* Then, there are five threads running:
+	* The main thread
+	* Two DataMultiplexer listeners threads (due to listeners invocations are independent in data multiplexer)
+	* The publisher thread t
+	* The Eventloop listener
+
 
 There is an extensive use of the DataMultiplexer in the [vision tutorial](https://github.com/klepsydra-technologies/kpsr-vision-ocv-tutorial).
 

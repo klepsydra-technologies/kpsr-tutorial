@@ -342,8 +342,7 @@ private:
     kpsr::Publisher<float> * _publisher;
 
     float calculateModule(const std::vector<float> & event) {
-      // TODO: use lambda to calculate the module
-      return 0f;
+      return sqrt(std::inner_product(event.begin(), event.end(),event.begin(), 0.0f));
    }
 }
 ```

@@ -32,6 +32,7 @@ int main() {
 
     kpsr::Publisher<std::vector<float>> * vectorPublisher = dataMultiplexer.getPublisher();
 
+
     eventloop.start();
 
     {
@@ -43,6 +44,7 @@ int main() {
             "sum",
             [](const float & message) {
                 std::cout << "Sum received: " << message << std::endl;
+                std::cout << "Eventloop (subscriber - sum) thread ID: " << std::this_thread::get_id() << std::endl;
             });
 
         ModuleVectorData moduleVectorData(
@@ -52,6 +54,7 @@ int main() {
         eventloop.getSubscriber<float>("mod")->registerListener("mod",
                                                                 [](const float & message) {
                                                                     std::cout << "Module received: " << message << std::endl;
+                                                                    std::cout << "Eventloop (subscriber - mod) thread ID: " << std::this_thread::get_id() << std::endl;
                                                                 }
             );
 
@@ -63,10 +66,17 @@ int main() {
                               }
                               vectorPublisher->publish(vector);
                               std::this_thread::sleep_for(std::chrono::milliseconds(5));
+			      std::cout << "t (publisher) thread ID: " << std::this_thread::get_id() << std::endl;
                           }
                       });
-        t.join();
-    }
 
+       
+       
+	t.join();
+	
+    }
+	
+    std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
     eventloop.stop();
 }
+

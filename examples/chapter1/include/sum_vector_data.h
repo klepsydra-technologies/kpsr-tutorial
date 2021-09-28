@@ -34,6 +34,8 @@ public:
          _subscriber->registerListener("sum_vector", [this](const std::vector<float> & event) {
             float sum = calculateSum(event);
             _publisher->publish(sum);
+            std::cout << "SumVectorDataClass (subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
+
          });
       }
       
@@ -51,3 +53,4 @@ private:
 };
 
 #endif // SUM_VECTOR_DATA
+

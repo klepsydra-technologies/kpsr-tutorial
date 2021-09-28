@@ -37,6 +37,7 @@ public:
          _subscriber->registerListener("mod_vector", [this](const std::vector<float> & event) {
             float module = calculateModule(event);
             _publisher->publish(module);
+            std::cout << "ModuleVectorDataClass (subscriber - mod) thread ID: " << std::this_thread::get_id() << std::endl;
          });
       }
       
@@ -54,3 +55,4 @@ private:
    }
 };
 #endif //  MOD_VECTOR_DATA_H
+

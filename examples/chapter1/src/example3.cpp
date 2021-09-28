@@ -25,6 +25,9 @@
 
 
 int main() {
+
+    std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
+
     kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
     kpsr::Publisher<std::vector<float>> * vectorPublisher = eventloop.getPublisher<std::vector<float>>("vector", 0, nullptr, nullptr);
 
@@ -38,6 +41,7 @@ int main() {
         eventloop.getSubscriber<float>("sum")->registerListener("sum",
                                                            [](const float & message) {
                                                                std::cout << "Sum received: " << message << std::endl;
+    							       std::cout << "Eventeloop (subscriber) ID thread : " << std::this_thread::get_id() << std::endl;
                                                            }
             );
 
@@ -49,9 +53,11 @@ int main() {
                               }
                               vectorPublisher->publish(vector);
                               std::this_thread::sleep_for(std::chrono::milliseconds(5));
+			      std::cout << "t (publisher) thread ID: " << std::this_thread::get_id() << std::endl;
                           }
                       });
 
+	
         t.join();
     }
 

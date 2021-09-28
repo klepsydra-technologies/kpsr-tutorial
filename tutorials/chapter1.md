@@ -390,7 +390,7 @@ int main() {
           for (int i = 0; i < 100; i ++) {
             std::vector<float> vector(10);
             for (int j = 0; j < 10; j++) {
-               vector[i] = static_cast<float>(j);
+               vector[j] = static_cast<float>(j);
             }
             vectorPublisher->publish(vector);
             std::this_thread::sleep_for(std::chrono::milliseconds(5));

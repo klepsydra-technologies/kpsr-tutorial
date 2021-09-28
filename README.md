@@ -59,7 +59,7 @@ Given ```$KLEPSYDRA_HOME```, for example ```$HOME/klepsydra```:
 
 ```
 cd $KLEPSYDRA_HOME
-git clone https://github.com/kpsr-devs/kpsr-tutorial.git
+git clone https://github.com/klepsydra-technologies/kpsr-tutorial.git
 cd kpsr-tutorial
 git submodule update --init
 mkdir build

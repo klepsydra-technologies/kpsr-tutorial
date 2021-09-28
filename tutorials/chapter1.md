@@ -184,7 +184,7 @@ TEST(SumVectorDataTest, NominalTest) {
       
       vectorProvider.getPublisher()->publish(vector);
       
-      ASSERT_FLOAT_EQ(* eventListener.getLastReceivedEvent(), 55);
+      ASSERT_FLOAT_EQ(* eventListener.getLastReceivedEvent(), 45);
    }
 }
 
@@ -266,7 +266,7 @@ By using the ```publish(std::shared_ptr<const T> & event)``` API instead. This w
        }
 
        vectorProvider.getPublisher()->publish(vector);
-       ASSERT_FLOAT_EQ(* newEventListener.getLastReceivedEvent(), 55);
+       ASSERT_FLOAT_EQ(* newEventListener.getLastReceivedEvent(), 45);
    }
 ```
 

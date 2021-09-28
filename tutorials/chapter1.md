@@ -252,7 +252,7 @@ By default, the ```publish(T & event)``` method in all implementations makes a c
 
 ### Publication API
 
-By using the ```publish(std::shared<const T> & event)``` API instead. This will make direct use of the provided object instead of creating a copy. For example, we could change the code of the main block in example 3:
+By using the ```publish(std::shared_ptr<const T> & event)``` API instead. This will make direct use of the provided object instead of creating a copy. For example, we could change the code of the main block in example 3:
 
 ```cpp
    {

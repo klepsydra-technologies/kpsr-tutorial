@@ -62,6 +62,7 @@ Let's now build simple main that makes use of this example class:
 ```cpp
 #include <iostream>
 #include "simple_publisher.h"
+#include <klepsydra/core/event_emitter_middleware_provider.h>
 
 int main() {
    kpsr::EventEmitterMiddlewareProvider<std::string> provider(nullptr, "tutorial_app_api_example1", 0, nullptr, nullptr);

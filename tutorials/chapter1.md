@@ -97,24 +97,24 @@ As suggested before, the ```EventEmitterMiddlewareProvider``` is a test only pro
 ```cpp
 #include <iostream>
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
+#include "simple_publisher.h"
 
 int main() {
-   kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
-   
-   eventloop.getSubscriber<std::string>()->registerListener("example2", [](const std::string & message) {
-         std::cout << "Message received: " << message << std::endl;
-      }
-   );
-   
-   eventloop.start();
-   
-   SimplePublisher simplePublisher(eventloop.getPublisher<std::string>("example2", 0, nullptr, nullptr));
+    kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
 
-   simplePublisher.run();
+    eventloop.start();
+    eventloop.getSubscriber<std::string>("example2")->registerListener("listener",
+                                                             [](const std::string & message) {
+                                                                 std::cout << "Message received: " << message << std::endl;
+                                                             });
+    std::this_thread::sleep_for(std::chrono::milliseconds(1)); // Ensures listener has been registered before publisher runs.
 
-   eventloop.getSubscriber<std::string>()->removeListener("example1");
+    SimplePublisher simplePublisher(eventloop.getPublisher<std::string>("example2", 0, nullptr, nullptr));
+    simplePublisher.run();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1)); // Ensures published message ALWAYS reaches subscriber before the listener is removed in next line.
 
-   eventloop.stop();
+    eventloop.getSubscriber<std::string>("example2")->removeListener("listener");
+    eventloop.stop();
 }
 ```
 

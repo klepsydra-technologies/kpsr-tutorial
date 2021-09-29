@@ -25,10 +25,13 @@
 int main() {
     kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
 
+    std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
+    
     eventloop.start();
     eventloop.getSubscriber<std::string>("example2")->registerListener("listener",
                                                              [](const std::string & message) {
                                                                  std::cout << "Message received: " << message << std::endl;
+                                                                 std::cout << "Eventloop (subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
                                                              });
     std::this_thread::sleep_for(std::chrono::milliseconds(1)); // Ensures listener has been registered before publisher runs.
 

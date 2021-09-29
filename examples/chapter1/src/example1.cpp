@@ -22,12 +22,15 @@
 
 #include <klepsydra/core/event_emitter_middleware_provider.h>
 int main() {
+    std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
+
     kpsr::EventEmitterMiddlewareProvider<std::string> provider(nullptr, "tutorial_app_api_example1", 0, nullptr, nullptr);
 
     SimplePublisher simplePublisher(provider.getPublisher());
 
     provider.getSubscriber()->registerListener("example1", [](const std::string & message) {
                                                                std::cout << "Message received: " << message << std::endl;
+                                                               std::cout << "Provider (subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
                                                            }
         );
 

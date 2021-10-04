@@ -20,7 +20,7 @@
 
 # Main header: Project name & Configuration
 # ------------------------------------------------------------------------------------------------------
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
 
 SET(PROJ_MAIN_NAME "tutorial")
 PROJECT(${PROJ_MAIN_NAME})
@@ -28,7 +28,7 @@ PROJECT(${PROJ_MAIN_NAME})
 
 # Configuration types
 SET(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Configs" FORCE)
-IF(DEFINED CMAKE_BUILD_TYPE AND CMAKE_VERSION VERSION_GREATER "2.8")
+IF(DEFINED CMAKE_BUILD_TYPE)
   SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES})
 ENDIF()
 

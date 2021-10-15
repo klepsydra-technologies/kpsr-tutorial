@@ -1,22 +1,22 @@
 /****************************************************************************
-*
-*                           Klepsydra Core Modules
-*              Copyright (C) 2019-2020  Klepsydra Technologies GmbH
-*
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
-*****************************************************************************/
+ *
+ *                           Klepsydra Core Modules
+ *              Copyright (C) 2019-2020  Klepsydra Technologies GmbH
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *****************************************************************************/
 
 #include <stdio.h>
 #include <thread>
@@ -25,31 +25,29 @@
 
 #include <klepsydra/tutorial/control_service.h>
 
+#include <klepsydra/core/cache_listener.h>
 #include <klepsydra/core/event_emitter_publisher.h>
 #include <klepsydra/core/event_emitter_subscriber.h>
-#include <klepsydra/core/cache_listener.h>
 
 #include <klepsydra/mem_core/mem_env.h>
 
 #include "klepsydra/tutorial/battery_state.h"
 #include "klepsydra/tutorial/temperature.h"
 
-class ControlServiceTest : public ::testing::Test {
+class ControlServiceTest : public ::testing::Test
+{
 protected:
     std::string batteryTopicName = "testBattery";
     std::string temperatureTopicName = "testTemperature";
     std::string statusTopicName = "testStatus";
 
     ControlServiceTest()
-        : eventEmitter(),
-          batterySubscriber(nullptr, eventEmitter, batteryTopicName),
-          temperatureSubscriber(nullptr, eventEmitter, temperatureTopicName),
-          statusPublisher(nullptr, statusTopicName, eventEmitter, 0, nullptr, nullptr),
-          sut(nullptr,
-              &batterySubscriber,
-              &temperatureSubscriber,
-              &statusPublisher)
-        {}
+        : eventEmitter()
+        , batterySubscriber(nullptr, eventEmitter, batteryTopicName)
+        , temperatureSubscriber(nullptr, eventEmitter, temperatureTopicName)
+        , statusPublisher(nullptr, statusTopicName, eventEmitter, 0, nullptr, nullptr)
+        , sut(nullptr, &batterySubscriber, &temperatureSubscriber, &statusPublisher)
+    {}
 
     kpsr::EventEmitter eventEmitter;
     kpsr::EventEmitterSubscriber<kpsr::sensors::BatteryState> batterySubscriber;
@@ -60,10 +58,14 @@ protected:
     kpsr::ControlService sut;
 };
 
-TEST_F(ControlServiceTest, batteryValueTest) {
-
-    kpsr::EventEmitterPublisher<kpsr::sensors::BatteryState> batteryPublisher(
-        nullptr, batteryTopicName, eventEmitter, 0, nullptr, nullptr);
+TEST_F(ControlServiceTest, batteryValueTest)
+{
+    kpsr::EventEmitterPublisher<kpsr::sensors::BatteryState> batteryPublisher(nullptr,
+                                                                              batteryTopicName,
+                                                                              eventEmitter,
+                                                                              0,
+                                                                              nullptr,
+                                                                              nullptr);
 
     kpsr::sensors::BatteryState testBatteryValue;
     testBatteryValue.percentage = 0.55;
@@ -77,10 +79,10 @@ TEST_F(ControlServiceTest, batteryValueTest) {
     ASSERT_EQ(receivedValue, testBatteryValue.percentage);
 }
 
-TEST_F(ControlServiceTest, temperatureTest) {
-
-    kpsr::EventEmitterPublisher<kpsr::sensors::Temperature> temperaturePublisher(
-        nullptr, temperatureTopicName, eventEmitter, 0, nullptr, nullptr);
+TEST_F(ControlServiceTest, temperatureTest)
+{
+    kpsr::EventEmitterPublisher<kpsr::sensors::Temperature>
+        temperaturePublisher(nullptr, temperatureTopicName, eventEmitter, 0, nullptr, nullptr);
 
     kpsr::sensors::Temperature testTemperatureValue;
     testTemperatureValue.temperature = 20;
@@ -94,13 +96,18 @@ TEST_F(ControlServiceTest, temperatureTest) {
     ASSERT_EQ(receivedValue, testTemperatureValue.temperature);
 }
 
-TEST_F(ControlServiceTest, systemEventStartTest) {
+TEST_F(ControlServiceTest, systemEventStartTest)
+{
+    kpsr::EventEmitterPublisher<kpsr::sensors::BatteryState> batteryPublisher(nullptr,
+                                                                              batteryTopicName,
+                                                                              eventEmitter,
+                                                                              0,
+                                                                              nullptr,
+                                                                              nullptr);
 
-    kpsr::EventEmitterPublisher<kpsr::sensors::BatteryState> batteryPublisher(
-        nullptr, batteryTopicName, eventEmitter, 0, nullptr, nullptr);
-
-    kpsr::EventEmitterSubscriber<kpsr::SystemEventData> statusSubscriber(
-        nullptr, eventEmitter, statusTopicName);
+    kpsr::EventEmitterSubscriber<kpsr::SystemEventData> statusSubscriber(nullptr,
+                                                                         eventEmitter,
+                                                                         statusTopicName);
     kpsr::mem::TestCacheListener<kpsr::SystemEventData> cacheListener(10);
     statusSubscriber.registerListener("cacheListener", cacheListener.cacheListenerFunction);
 
@@ -115,13 +122,18 @@ TEST_F(ControlServiceTest, systemEventStartTest) {
     sut.stop();
 }
 
-TEST_F(ControlServiceTest, systemEventNoDoublePublishTest) {
+TEST_F(ControlServiceTest, systemEventNoDoublePublishTest)
+{
+    kpsr::EventEmitterPublisher<kpsr::sensors::BatteryState> batteryPublisher(nullptr,
+                                                                              batteryTopicName,
+                                                                              eventEmitter,
+                                                                              0,
+                                                                              nullptr,
+                                                                              nullptr);
 
-    kpsr::EventEmitterPublisher<kpsr::sensors::BatteryState> batteryPublisher(
-        nullptr, batteryTopicName, eventEmitter, 0, nullptr, nullptr);
-
-    kpsr::EventEmitterSubscriber<kpsr::SystemEventData> statusSubscriber(
-        nullptr, eventEmitter, statusTopicName);
+    kpsr::EventEmitterSubscriber<kpsr::SystemEventData> statusSubscriber(nullptr,
+                                                                         eventEmitter,
+                                                                         statusTopicName);
     kpsr::mem::TestCacheListener<kpsr::SystemEventData> cacheListener(10);
     statusSubscriber.registerListener("cacheListener", cacheListener.cacheListenerFunction);
 
@@ -139,14 +151,14 @@ TEST_F(ControlServiceTest, systemEventNoDoublePublishTest) {
     sut.stop();
 }
 
+TEST_F(ControlServiceTest, systemEventTemperatureLimitsTest)
+{
+    kpsr::EventEmitterPublisher<kpsr::sensors::Temperature>
+        temperaturePublisher(nullptr, temperatureTopicName, eventEmitter, 0, nullptr, nullptr);
 
-TEST_F(ControlServiceTest, systemEventTemperatureLimitsTest) {
-
-    kpsr::EventEmitterPublisher<kpsr::sensors::Temperature> temperaturePublisher(
-        nullptr, temperatureTopicName, eventEmitter, 0, nullptr, nullptr);
-
-    kpsr::EventEmitterSubscriber<kpsr::SystemEventData> statusSubscriber(
-        nullptr, eventEmitter, statusTopicName);
+    kpsr::EventEmitterSubscriber<kpsr::SystemEventData> statusSubscriber(nullptr,
+                                                                         eventEmitter,
+                                                                         statusTopicName);
     kpsr::mem::TestCacheListener<kpsr::SystemEventData> cacheListener(10);
     statusSubscriber.registerListener("cacheListener", cacheListener.cacheListenerFunction);
 
@@ -181,9 +193,8 @@ TEST_F(ControlServiceTest, systemEventTemperatureLimitsTest) {
     sut.stop();
 }
 
-
-TEST(ControlServiceEnvironmentTest, checkEnvironmentPropsTest) {
-
+TEST(ControlServiceEnvironmentTest, checkEnvironmentPropsTest)
+{
     std::string batteryTopicName = "testBattery";
     std::string temperatureTopicName = "testTemperature";
     std::string statusTopicName = "testStatus";
@@ -206,12 +217,17 @@ TEST(ControlServiceEnvironmentTest, checkEnvironmentPropsTest) {
     testEnv.setPropertyFloat("BATTERY_THRESHOLD_LOW", BATTERY_THRESHOLD_LOW);
     testEnv.setPropertyFloat("BATTERY_THRESHOLD_LOW_START", BATTERY_THRESHOLD_LOW_START);
 
-    kpsr::EventEmitterSubscriber<kpsr::sensors::BatteryState> batterySubscriber(
-        nullptr, eventEmitter, batteryTopicName);
-    kpsr::EventEmitterSubscriber<kpsr::sensors::Temperature>  temperatureSubscriber(
-        nullptr, eventEmitter, temperatureTopicName);
-    kpsr::EventEmitterPublisher<kpsr::SystemEventData> statusPublisher(
-        nullptr, statusTopicName, eventEmitter, 0, nullptr, nullptr);
+    kpsr::EventEmitterSubscriber<kpsr::sensors::BatteryState> batterySubscriber(nullptr,
+                                                                                eventEmitter,
+                                                                                batteryTopicName);
+    kpsr::EventEmitterSubscriber<kpsr::sensors::Temperature>
+        temperatureSubscriber(nullptr, eventEmitter, temperatureTopicName);
+    kpsr::EventEmitterPublisher<kpsr::SystemEventData> statusPublisher(nullptr,
+                                                                       statusTopicName,
+                                                                       eventEmitter,
+                                                                       0,
+                                                                       nullptr,
+                                                                       nullptr);
     kpsr::ControlService testClass(&testEnv,
                                    &batterySubscriber,
                                    &temperatureSubscriber,

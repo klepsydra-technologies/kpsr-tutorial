@@ -141,3 +141,6 @@ find_package(Threads REQUIRED)
 ADD_SUBDIRECTORY(modules)
 ADD_SUBDIRECTORY(tests)
 ADD_SUBDIRECTORY(examples)
+
+# Code format check
+include(CodeFormat)

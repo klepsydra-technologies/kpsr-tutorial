@@ -1,0 +1,130 @@
+name: Check builds
+
+on:
+  push:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-kpsr-core-os:
+    name: Kpsr-core OS
+    runs-on: ubuntu-latest
+    container:
+      image: 337955887028.dkr.ecr.us-east-2.amazonaws.com/kpsr-docker-registry/github/kpsr-core:Yamlcpp_1.0.1
+      credentials:
+        username: AWS
+        password: ${{ secrets.ECR_PASSWORD }}
+    steps:
+      - name: Clone kpsr-core OS
+        uses: actions/checkout@v2
+        with:
+          repository: klepsydra-technologies/kpsr-core
+          ref: master
+          submodules: recursive
+          path: kpsr-core
+
+      - name: Build and install kpsr-core
+        run: |
+          mkdir build && cd build 
+          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=false -DKPSR_WITH_CODE_METRICS=true -DCMAKE_PREFIX_PATH=/opt/klepsydra/thirdparties -DCMAKE_BUILD_TYPE=Release ../ 
+          make -j$(nproc)
+          make install
+        working-directory: kpsr-core
+
+      - name: Copy kpsr_code_gen to python-wheels
+        run: |
+          cp build/kpsr_codegen-1.0-py3-none-any.whl /usr/share/python-wheels/
+        working-directory: kpsr-core
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: kpsr-core-os-artifacts
+          path: |
+            /usr/local/include/klepsydra
+            /usr/local/include/kpsr_3parties
+            /usr/local/lib/cmake/klepsydra
+            /usr/local/lib/libkpsr_*.so
+            /usr/share/python-wheels/kpsr_codegen-1.0-py3-none-any.whl
+
+  build-tutorial-os:
+    name: Build kpsr-tutorial OS
+    runs-on: ubuntu-latest
+    needs: build-kpsr-core-os
+    container:
+      image: 337955887028.dkr.ecr.us-east-2.amazonaws.com/kpsr-docker-registry/github/kpsr-core:Yamlcpp_1.0.1
+      credentials:
+        username: AWS
+        password: ${{ secrets.ECR_PASSWORD }}
+    steps:
+      - name: Retrieve kpsr-core
+        uses: actions/download-artifact@v2
+        with:
+          name: kpsr-core-os-artifacts
+          path: /usr/
+
+      - name: Install kpsr_codegen
+        run: |
+          pip3 install /usr/share/python-wheels/kpsr_codegen-1.0-py3-none-any.whl
+
+      - name: Clone tutorial sources
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Build tutorial
+        run: |
+          mkdir build && cd build
+          cmake ../
+          make -j$(nproc)
+
+      - name: Run tutorial unit tests
+        run: |
+          ./build/bin/kpsr_tutorial_tests
+
+      - name: Run chapters
+        run: |
+          cd build
+          for tutorial in $(ls bin | grep kpsr_tutorial_chapter);do echo "$tutorial";bin/$tutorial;done
+
+      - name: Run examples
+        run: |
+          cd build
+          for tutorial in $(ls bin | grep kpsr_tutorial_example);do echo "$tutorial";bin/$tutorial;done
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: kpsr-core-os_logs
+          path: |
+            build/Testing/Temporary
+
+  format-check:
+    name: Code format check
+    runs-on: ubuntu-latest
+    needs: build-kpsr-core-os
+    container:
+      image: 337955887028.dkr.ecr.us-east-2.amazonaws.com/kpsr-os/cpplint:1.0.1
+      credentials:
+        username: AWS
+        password: ${{ secrets.ECR_PASSWORD }}
+    steps:
+      - name: Clone sources
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Retrieve kpsr-core
+        uses: actions/download-artifact@v2
+        with:
+          name: kpsr-core-os-artifacts
+          path: /usr/
+
+      - name: Check code formatting
+        run: |
+          mkdir build && cd build
+          cmake ../
+          make formatcheck

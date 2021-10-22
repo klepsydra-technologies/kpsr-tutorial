@@ -119,6 +119,14 @@ TARGET_INCLUDE_DIRECTORIES(${PROJ_NAME}_6c
   ${CMAKE_CURRENT_SOURCE_DIR}/include 
   )
 
+
+ADD_EXECUTABLE(${PROJ_NAME}_7 ${${PROJ_NAME}_HEADERS} src/example7.cpp )
+
+TARGET_LINK_LIBRARIES(${PROJ_NAME}_7
+  PUBLIC
+  ${KLEPSYDRA_CORE_LIBRARIES}
+  )
+
 ###### Example unit tests
 # Source
 #---------------------------------------------------#

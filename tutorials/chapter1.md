@@ -718,3 +718,77 @@ protected:
 ```
 
 We provide an example (using the previously defined ControlService) along with a unit test (example6c.cpp)
+
+
+## Example 7: The EventTransformForward
+
+We are going to introduce the ```kpsr::EvenTransformForwarder``` which is an optimised forwarding helper class. Its purpose is to optimise memory allocation and callstack when processing events, transforming and forwarding them.
+
+So, in the next example a ```kpsr::EvenTransformForwarder``` object obtains the size of a string and publishes it.
+
+```cpp
+#include <iostream>
+
+#include <klepsydra/high_performance/event_loop_middleware_provider.h>
+#include <klepsydra/core/event_transform_forwarder.h>
+
+
+int main() {
+
+    kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
+
+    kpsr::Publisher<std::string> * stringPublisher = eventloop.getPublisher<std::string>("string", 0, nullptr, nullptr);
+    kpsr::Subscriber<std::string> * stringSubscriber = eventloop.getSubscriber<std::string>("string");
+
+    kpsr::Publisher<int> * sizeStringPublisher = eventloop.getPublisher<int>("size_string", 0, nullptr, nullptr);
+    kpsr::Subscriber<int> * sizeStringSubscriber = eventloop.getSubscriber<int>("size_string");
+
+    eventloop.start();
+    
+    {
+        kpsr::EventTransformForwarder<std::string, int> eventTransformer([](const std::string & eventString, int & transformed) { 
+                                                                         transformed = eventString.size(); },
+                                                                         sizeStringPublisher);
+
+        stringSubscriber->registerListener("transformer", eventTransformer.forwarderListenerFunction);
+        sizeStringSubscriber->registerListener("output_listener", [](const int & event){
+                                                 std::cout << "The size of the string received is: " << event << std::endl;
+                                                 });
+
+        std::thread stringPublisherThread([&stringPublisher]() {
+            stringPublisher->publish("Example");
+            stringPublisher->publish("Example about");
+            stringPublisher->publish("Example about EventTransformForwarder");
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        });
+
+        stringPublisherThread.join();
+    }
+    
+    stringSubscriber->removeListener("transformer");
+    sizeStringSubscriber->removeListener("output_listener");
+    eventloop.stop();
+}
+```
+
+* It is important to clarify that the ```kpsr::EventTransformForwarder<std::string, int> eventTransformer``` constructor receives two parameters:
+    * the Forwarder Listener Function: where the transforming task is done. In this example the transforming task consists of obtaining the size of one string.
+    * the Publisher: who does the forwarding task. In this example the publisher is called ```kpsr::Publisher<int> sizeStringPublisher``` and it publishes the size of one string (size obtained by the Forwarder Listener Function).
+
+* So, the communication flow of this example is the next
+
+    * The ```kpsr::Publisher<std::string> stringPublisher``` publishes strings with different size.
+
+    * The ```kpsr::Subscriber<std::string> stringSubscriber``` receives the strings publishes by ```kpsr::Publisher<std::string> stringPublisher```. When it receives a published string, the ```eventTransformer.forwarderListenerFunction``` is called automatically due to the Register Listener function of ```kpsr::Subscriber<std::string> stringSubscriber``` receives as one of its parameters the ```eventTransformer.forwarderListenerFunction```. So, the size of this string is obtained.
+
+    * The ```kpsr::Publisher<int> sizeStringPublisher``` publishes the size of the string because it is the publisher of ```kpsr::EventTransformForwarder<std::string, int> eventTransformer```.
+
+    * The ```kpsr::Subscriber<int> sizeStringSubscriber``` receives the size of the string and prints out it. 
+
+* In the next image we can see the ouput of this example. The size of three different strings published is shown. As you can see, the first string published is "Example" and its size is 7. The second string is "Example about" and its size is 13. Finally, the third string is "Example about EvenTransformForwarder" and its size is 37.
+
+<p align="center">
+  <img width="50%" height="50%" src="../images/chapter1_example7.png">
+</p>
+
+

@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: klepsydra-technologies/kpsr-core
-          ref: master
+          ref: main
           submodules: recursive
           path: kpsr-core
 

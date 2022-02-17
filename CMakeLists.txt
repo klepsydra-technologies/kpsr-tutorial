@@ -57,6 +57,13 @@ else()
 endif()
 message(STATUS "kpsr-build path: " ${KPSR_BUILD_PATH})
 
+
+IF(DEFINED GBENCHMARK_PATH)
+ELSE()
+        SET(GBENCHMARK_PATH ${THIRDPARTIES_PATH}/benchmark) #default google test path
+ENDIF()
+message(STATUS "Google benchmark path: " ${GBENCHMARK_PATH})
+
 # Configure variables
 # ------------------------------------------------------------------------------------------------------
 
@@ -141,6 +148,7 @@ find_package(Threads REQUIRED)
 ADD_SUBDIRECTORY(modules)
 ADD_SUBDIRECTORY(tests)
 ADD_SUBDIRECTORY(examples)
+ADD_SUBDIRECTORY(${GBENCHMARK_PATH})
 
 # Code format check
 include(CodeFormat)

@@ -23,6 +23,7 @@
 #include <klepsydra/core/publisher.h>
 #include <klepsydra/core/subscriber.h>
 #include <numeric>
+#include <iostream>
 
 class SumVectorData
 {

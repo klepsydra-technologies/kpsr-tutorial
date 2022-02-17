@@ -27,7 +27,7 @@ ADD_EXECUTABLE(${PROJ_NAME}_1 ${${PROJ_NAME}_HEADERS} src/example1.cpp )
 
 TARGET_LINK_LIBRARIES(${PROJ_NAME}_1
   PUBLIC
-  ${KLEPSYDRA_CORE_LIBRARIES}
+  ${KLEPSYDRA_CORE_LIBRARIES} 
   )
 
 TARGET_INCLUDE_DIRECTORIES(${PROJ_NAME}_1 
@@ -58,7 +58,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJ_NAME}_3
   PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include 
   )
-
+  
 
 ADD_EXECUTABLE(${PROJ_NAME}_4a ${${PROJ_NAME}_HEADERS} src/example4a.cpp )
 TARGET_LINK_LIBRARIES(${PROJ_NAME}_4a
@@ -127,6 +127,28 @@ TARGET_LINK_LIBRARIES(${PROJ_NAME}_7
   ${KLEPSYDRA_CORE_LIBRARIES}
   )
 
+
+
+
+# IMPORTANT: To run google benchmark in our target is MANDATORY to link benchmark, benchmark_main AND GOOGLE TEST targets.
+# If we do not add gtest & benchmark_main to our target, we will receive a compilation error saying:
+# in function `_start': (.text+0x24): undefined reference to `main'
+ADD_EXECUTABLE(benchmark_example3 ${${PROJ_NAME}_HEADERS} ${${PROJ_NAME}_SRC} ${CMAKE_CURRENT_SOURCE_DIR}/benchmark/benchmark_example3.cpp )
+TARGET_LINK_LIBRARIES(benchmark_example3
+    PUBLIC
+    ${KLEPSYDRA_CORE_LIBRARIES} 
+    benchmark
+    benchmark_main 
+    gtest
+    )
+TARGET_INCLUDE_DIRECTORIES(benchmark_example3
+  PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/include 
+  ${CMAKE_SOURCE_DIR}/thirdparties/benchmark/include
+  ${CMAKE_SOURCE_DIR}/thirdparties/benchmark/include/benchmark
+  )
+
+    
 ###### Example unit tests
 # Source
 #---------------------------------------------------#
@@ -139,12 +161,14 @@ ADD_EXECUTABLE(${PROJ_UNIT_TESTS} ${${PROJ_NAME}_HEADERS} ${${PROJ_NAME}_SRC} )
 TARGET_LINK_LIBRARIES(${PROJ_UNIT_TESTS}
   PUBLIC
   ${KLEPSYDRA_CORE_LIBRARIES}
-  gtest_main
+  benchmark
+  benchmark_main 
+  gtest
   )
 
 TARGET_INCLUDE_DIRECTORIES(${PROJ_NAME}_unit_tests
   PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/include 
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
   )
 
 add_test(NAME ${PROJ_NAME} COMMAND ${PROJ_UNIT_TESTS})

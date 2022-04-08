@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <klepsydra/core/publisher.h>
+#include <iostream>
 
 class SimplePublisher
 {

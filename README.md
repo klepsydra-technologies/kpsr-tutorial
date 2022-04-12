@@ -85,7 +85,7 @@ Next, make a symlink in your ROS catkin workspace to point to  the ROS subfolder
 ```
 cd $CATKIN_WORKSPACE/src
 source /opt/ros/melodic/setup.bash (alt: source /opt/ros/kinetic/setup.bash)
-ln -s $KLEPSYDRA_HOME/kpsr-tutorial/tests/kpsr_ros_tests
+ln -s $KLEPSYDRA_HOME/kpsr-tutorial/examples/chapter/kpsr_tutorial_chp2_ros
 catkin_make
 ```
 
@@ -100,7 +100,7 @@ Run the ROS example as you would run any ros node:
 
 ```
 source devel/setup.bash
-rosrun kpsr_ros_tutorial kpsr_ros_tutorial
+rosrun kpsr_tutorial_chp2_ros kpsr_tutorial_chp2_ros_ex2
 ```
 
 #  License

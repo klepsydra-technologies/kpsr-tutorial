@@ -18,7 +18,7 @@ Each chapter has its corresponding code in the [examples](./examples) folder.
 ## System dependencies
 
 * Ubuntu 14.04 or above
-* Google Tests (https://github.com/klepsydra-technologies/googletest)
+* Google Tests (<https://github.com/klepsydra-technologies/googletest>)
 * ROS Indigo or above (optional)
 * DDS (optional)
 * Cmake 3.5.1 or above
@@ -30,34 +30,32 @@ Note that Google Tests is pulled in automatically when installing this project a
 
 No separate installation is needed for the following dependencies if the Klepsydra installation was done correctly.
 
-* ConcurrentQueue (https://github.com/klepsydra-technologies/concurrentqueue)
-* Cereal (https://github.com/klepsydra-technologies/cereal)
-* spdlog (https://github.com/klepsydra-technologies/spdlog)
+* ConcurrentQueue (<https://github.com/klepsydra-technologies/concurrentqueue>)
+* Cereal (<https://github.com/klepsydra-technologies/cereal>)
+* spdlog (<https://github.com/klepsydra-technologies/spdlog>)
 
 ## Klepsydra dependencies
 
 * kpsr-core (installed with yaml support)
-* kpsr-build (https://github.com/klepsydra-technologies/kpsr-build)
+* kpsr-build (<https://github.com/klepsydra-technologies/kpsr-build>)
 
 kpsr-build will be pulled in automatically by the install process of this project.
 
 ### Installation
 
 If you wish to follow the DDS and ROS examples in this
-project, then the Klepsydra software must have been installed using the 
+project, then the Klepsydra software must have been installed using the
 `-DKPSR_WITH_DDS=true` and `-DKPSR_WITH_ROS=true` arguments with cmake.
 
-## System installation
-
-	sudo apt install build-essentials
-	sudo apt install git
-	sudo apt install cmake
-
-## Installation
+```bash
+sudo apt install build-essentials
+sudo apt install git
+sudo apt install cmake
+```
 
 Given ```$KLEPSYDRA_HOME```, for example ```$HOME/klepsydra```:
 
-```
+```bash
 cd $KLEPSYDRA_HOME
 git clone https://github.com/klepsydra-technologies/kpsr-tutorial
 cd kpsr-tutorial
@@ -77,12 +75,14 @@ The cmake has the following options:
 ### Install process for ROS Examples
 
 For compiling ROS examples, we further need to install the kpsr-tutorial module. This can be done by running (after the above build process):
-```
+
+```bash
 make install
 ```
+
 Next, make a symlink in your ROS catkin workspace to point to  the ROS subfolder of this project.
 
-```
+```bash
 cd $CATKIN_WORKSPACE/src
 source /opt/ros/melodic/setup.bash (alt: source /opt/ros/kinetic/setup.bash)
 ln -s $KLEPSYDRA_HOME/kpsr-tutorial/examples/chapter/kpsr_tutorial_chp2_ros
@@ -91,26 +91,26 @@ catkin_make
 
 To execute the tests:
 
-```
+```bash
 catkin_make tests
 catkin_make run_tests_kpsr_ros_tutorial
 ```
 
 Run the ROS example as you would run any ros node:
 
-```
+```bash
 source devel/setup.bash
 rosrun kpsr_tutorial_chp2_ros kpsr_tutorial_chp2_ros_ex2
 ```
 
-#  License
+# License
 
 &copy; Copyright 2019-2020, Klepsydra Technologies, all rights reserved. Licensed under the terms in [LICENSE.md](./LICENSE.md)
 
 This software and documentation are Copyright 2019-2020, Klepsydra Technologies
 Limited and its licensees. All rights reserved. See [license file](./LICENSE.md) for full copyright notice and license terms.
 
-#  Contact
+# Contact
 
-https://www.klepsydra.com
+<https://www.klepsydra.com>
 support@klepsydra.com

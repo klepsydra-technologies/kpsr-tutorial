@@ -9,8 +9,14 @@ defaults:
     shell: bash
 
 jobs:
-  build-kpsr-core-os:
-    name: Kpsr-core OS
+  vanilla:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - buildtype: Debug
+          - buildtype: Release
+    name: Vanilla ${{ matrix.buildtype }}
     runs-on: ubuntu-latest
     container:
       image: 337955887028.dkr.ecr.eu-central-1.amazonaws.com/general:kpe-build-1.3.0
@@ -19,7 +25,7 @@ jobs:
         username: AWS
         password: ${{ secrets.ECR_PASSWORD }}
     steps:
-      - name: Clone kpsr-core OS
+      - name: Clone kpsr-core
         uses: actions/checkout@v2
         with:
           repository: klepsydra-technologies/kpsr-core
@@ -30,68 +36,35 @@ jobs:
       - name: Build and install kpsr-core
         run: |
           mkdir build && cd build 
-          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=false -DKPSR_WITH_CODE_METRICS=true -DCMAKE_PREFIX_PATH=/opt/klepsydra/thirdparties -DCMAKE_BUILD_TYPE=Release ../ 
+          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=true -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} ../ 
           make -j$(nproc)
           make install
         working-directory: kpsr-core
 
-      - name: Copy kpsr_code_gen to python-wheels
-        run: |
-          cp build/kpsr_codegen-1.0-py3-none-any.whl /usr/share/python-wheels/
-        working-directory: kpsr-core
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: kpsr-core-os-artifacts
-          path: |
-            /usr/local/include/klepsydra
-            /usr/local/include/kpsr_3parties
-            /usr/local/lib/cmake/klepsydra
-            /usr/local/lib/libkpsr_*.so
-            /usr/share/python-wheels/kpsr_codegen-1.0-py3-none-any.whl
-
-  build-tutorial-os:
-    name: Build kpsr-tutorial OS
-    runs-on: ubuntu-latest
-    needs: build-kpsr-core-os
-    container:
-      image: 337955887028.dkr.ecr.eu-central-1.amazonaws.com/general:kpe-build-1.3.0
-      options: --user root
-      credentials:
-        username: AWS
-        password: ${{ secrets.ECR_PASSWORD }}
-    steps:
-      - name: Retrieve kpsr-core
-        uses: actions/download-artifact@v2
-        with:
-          name: kpsr-core-os-artifacts
-          path: /usr/
-
-      - name: Install kpsr_codegen
-        run: |
-          pip3 install /usr/share/python-wheels/kpsr_codegen-1.0-py3-none-any.whl
-
-      - name: Clone tutorial sources
+      - name: Clone project
         uses: actions/checkout@v2
         with:
           submodules: recursive
 
-      - name: Build tutorial
+      - name: Build project
         run: |
           mkdir build && cd build
-          cmake ../
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} ../
           make -j$(nproc)
 
       - name: Run tutorial unit tests
+        timeout-minutes: 10
         run: |
           ./build/bin/kpsr_tutorial_tests
 
       - name: Run chapters
+        timeout-minutes: 10
         run: |
           cd build
           for tutorial in $(ls bin | grep kpsr_tutorial_chapter);do echo "$tutorial";bin/$tutorial;done
 
       - name: Run examples
+        timeout-minutes: 10
         run: |
           cd build
           for tutorial in $(ls bin | grep kpsr_tutorial_example);do echo "$tutorial";bin/$tutorial;done
@@ -100,34 +73,93 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v2
         with:
-          name: kpsr-core-os_logs
+          name: vanilla-debug-logs
           path: |
+            build/CMakeFiles/CMakeOutput.log
+            build/CMakeFiles/CMakeError.log
             build/Testing/Temporary
 
-  format-check:
-    name: Code format check
+  ros:
     runs-on: ubuntu-latest
-    needs: build-kpsr-core-os
+    strategy:
+      matrix:
+        rosrelease: ["melodic", "noetic"]
+    name: ROS ${{ matrix.rosrelease }}
+    env:
+      ROS_DISTRO: ${{ matrix.rosrelease }}
     container:
-      image: 337955887028.dkr.ecr.eu-central-1.amazonaws.com/general:kpe-build-1.3.0
+      image: "337955887028.dkr.ecr.eu-central-1.amazonaws.com/ros:${{ matrix.rosrelease }}-1.1.1"
       options: --user root
       credentials:
         username: AWS
         password: ${{ secrets.ECR_PASSWORD }}
     steps:
-      - name: Clone sources
+      - name: Clone kpsr-core
+        uses: actions/checkout@v2
+        with:
+          repository: klepsydra-technologies/kpsr-core
+          submodules: recursive
+          ref: main
+          path: kpsr-core
+
+      - name: Install kpsr-core
+        run: |
+          mkdir -p build && cd build
+          cmake -DKPSR_WITH_DOXYGEN=false -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=false -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=true -DKPSR_WITH_CODE_METRICS=false -DCMAKE_BUILD_TYPE=Release ../
+          make -j$(nproc)
+          sudo make -j$(nproc) install
+        working-directory: kpsr-core
+
+      - name: Clone project
         uses: actions/checkout@v2
         with:
           submodules: recursive
+          path: kpsr-tutorial
 
-      - name: Retrieve kpsr-core
-        uses: actions/download-artifact@v2
-        with:
-          name: kpsr-core-os-artifacts
-          path: /usr/
-
-      - name: Check code formatting
+      - name: Install project
         run: |
           mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release ../
+          make -j$(nproc)
+          sudo make -j$(nproc) install
+        working-directory: kpsr-tutorial
+
+      - name: Create ROS environment
+        run: |
+          source /opt/ros/$ROS_DISTRO/setup.bash
+          mkdir -p ${GITHUB_WORKSPACE}/kpsr-ros/src/build
+          cd ${GITHUB_WORKSPACE}/kpsr-ros/src
+          catkin_init_workspace
+          ln -s ${GITHUB_WORKSPACE}/kpsr-core/core/modules/ros_mdlw/kpsr_ros_core . 
+          ln -s ${GITHUB_WORKSPACE}/kpsr-core/serialization/modules/ros_mdlw/kpsr_ros_serialization .
+          ln -s ${GITHUB_WORKSPACE}/kpsr-tutorial/examples/chapter1 .
+          ln -s ${GITHUB_WORKSPACE}/kpsr-tutorial/examples/chapter2 .
+          ls -la ${GITHUB_WORKSPACE}
+
+      - name: Build ros
+        run: |
+          source /opt/ros/$ROS_DISTRO/setup.bash
+          cd ${GITHUB_WORKSPACE}/kpsr-ros/src/build
           cmake ../
-          make formatcheck
+          make -j$(nproc)
+          make -j$(nproc) tests
+
+      - name: Run tests
+        timeout-minutes: 15
+        run: |
+          source /opt/ros/$ROS_DISTRO/setup.bash
+          cd ${GITHUB_WORKSPACE}/kpsr-ros/src/build
+          roscore &
+          sleep 2
+          make test
+
+      - name: Upload logs on failure
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: ros-${{ matrix.rosrelease }}
+          path: |
+            build/Testing/Temporary
+            build/code_generator/kpsr_codegen/build_cpptesting/Testing/Temporary
+            ${GITHUB_WORKSPACE}/kpsr-ros/src/build/Testing/Temporary
+            ${GITHUB_WORKSPACE}/kpsr-ros/src/build/test_results

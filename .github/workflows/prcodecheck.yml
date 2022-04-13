@@ -1,0 +1,51 @@
+name: Code style check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  format-check:
+    name: Code style
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    container:
+      image: 337955887028.dkr.ecr.eu-central-1.amazonaws.com/general:kpe-build-1.3.0
+      options: --user root
+      credentials:
+        username: AWS
+        password: ${{ secrets.ECR_PASSWORD }}
+    steps:
+      - name: Clone kpsr-core
+        uses: actions/checkout@v2
+        with:
+          repository: klepsydra-technologies/kpsr-core
+          ref: main
+          submodules: recursive
+          path: kpsr-core
+
+      - name: Build and install kpsr-core
+        run: |
+          mkdir build && cd build 
+          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=false -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug ../ 
+          make -j$(nproc)
+          sudo make install
+        working-directory: kpsr-core
+
+      - name: Clone project
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Code format check
+        run: |
+          mkdir build && cd build
+          cmake ../
+          make formatcheck

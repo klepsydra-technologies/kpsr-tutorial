@@ -27,6 +27,7 @@ Going back to the fist example in chapter1:
 
 ```cpp
 #include <klepsydra/core/publisher.h>
+#include <iostream>
 
 class SimplePublisher {
 public:
@@ -36,6 +37,7 @@ public:
    
    void run() {
       _publisher->publish("Hello World!");
+      std::cout << "SimplePublisherClass (publisher) thread ID: " << std::this_thread::get_id() << std::endl;
    }
 
 private:
@@ -46,13 +48,16 @@ private:
 
 Let's build a simple publisher for ROS:
 
+The below example aims to show us how data published via Klepsydra publisher can be received with a ROS subscriber.
+
 ```cpp
 #include <kpsr_ros_core/to_ros_middleware_provider.h>
 #include <kpsr_ros_serialization/primitive_type_ros_mapper.h>
 #include "simple_publisher.h"
 
 void callbackFunction(const std_msgs::String& message) {
-    std::cout << "Message received: " << message.data<< std::endl;
+   std::cout << "Message received: " << message.data<< std::endl;
+   std::cout << "Callback (ros subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
 }
 
 int main(int argc, char ** argv) {
@@ -94,6 +99,8 @@ As ROS defines specific message types for different primitive data types in C++,
 
 The following example shows how data coming from the middleware is placed in the eventloop. We will use the same publisher as in example 1.
 
+The below example aims to show us how data published via ROS publisher can be received with a Klepsydra subscriber.
+
 ```cpp
 #include <kpsr_ros_core/from_ros_middleware_provider.h>
 #include <kpsr_ros_core/to_ros_middleware_provider.h>
@@ -115,6 +122,7 @@ int main(int argc, char ** argv) {
    
    eventloop.getSubscriber<std::string>(topicName)->registerListener("example2", [](const std::string & message) {
          std::cout << "Message received: " << message << std::endl;
+         std::cout << "Eventloop (subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
       }
    );
    
@@ -149,6 +157,7 @@ Klepsydra uses it own event loop to replicate the message sent by the publisher 
 ```cpp
    eventloop.getSubscriber<std::string>(topicName)->registerListener("example2", [](const std::string & message) {
          std::cout << "Message received: " << message << std::endl;
+         std::cout << "Eventloop (subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
       }
    );
 ```
@@ -178,6 +187,10 @@ int main() {
    // Declare the eventloop and vector publisher
    kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
    eventloop.start();
+
+    kpsr::ros_mdlw::ToRosMiddlewareProvider toRosProvider(nullptr);
+    ros::Publisher rosVectorPublisher = nodeHandle.advertise<std_msgs::Float32MultiArray>("vector",
+                                                                                          1);
 
    // Set up the klepsydra class to publish ROS vectors.
    auto vectorPublisher = toRosProvider.getToMiddlewareChannel<std_msgs::Float32MultiArray, std_msgs::Float32MultiArray>(

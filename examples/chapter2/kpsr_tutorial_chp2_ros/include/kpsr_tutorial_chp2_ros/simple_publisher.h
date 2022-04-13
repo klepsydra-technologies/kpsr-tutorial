@@ -21,6 +21,7 @@
 #ifndef SIMPLE_PUBLISHER_H
 #define SIMPLE_PUBLISHER_H
 
+#include <iostream>
 #include <klepsydra/core/publisher.h>
 
 class SimplePublisher
@@ -30,7 +31,12 @@ public:
         : _publisher(publisher)
     {}
 
-    void run() { _publisher->publish("Hello World!"); }
+    void run()
+    {
+        _publisher->publish("Hello World!");
+        std::cout << "SimplePublisherClass (publisher) thread ID: " << std::this_thread::get_id()
+                  << std::endl;
+    }
 
 private:
     kpsr::Publisher<std::string> *_publisher;

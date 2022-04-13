@@ -45,6 +45,8 @@ int main(int argc, char **argv)
     eventloop.getSubscriber<std::string>(topicName)
         ->registerListener(topicName, [](const std::string &message) {
             std::cout << "Message received: " << message << std::endl;
+            std::cout << "Eventloop (subscriber) thread ID: " << std::this_thread::get_id()
+                      << std::endl;
         });
 
     std_msgs::String testMessage;

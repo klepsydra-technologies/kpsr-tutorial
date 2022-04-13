@@ -27,6 +27,7 @@
 void callbackFunction(const std_msgs::String &message)
 {
     std::cout << "Message received: " << message.data << std::endl;
+    std::cout << "Callback (ros subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
 }
 
 int main(int argc, char **argv)

@@ -274,6 +274,50 @@ int main(int argc, char **argv) {
 * The Environment class interface can be used to get and set values. When getting/setting a parameter, you must know the type of the parameter and use the relevant getter/setter. 
 * After running this example, you can verify that a new parameter `/paramFloat` exists with a value 1.5 using the `rosparam` command-line utility.
 
+#### Example 5: Exchange ROS Messages
+
+This example shows us that with Klepsydra core you can use ROS messages to exchange data between the nodes.
+
+```cpp
+#include <iostream>
+#include <klepsydra/high_performance/event_loop_middleware_provider.h>
+#include <std_msgs/String.h>
+
+int main()
+{
+    // Declare the eventloop and vector publisher
+    kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
+
+    eventloop.start();
+
+    auto strpublisher = eventloop.getPublisher<std_msgs::String>("example5", 0, nullptr, nullptr);
+
+    eventloop.getSubscriber<std_msgs::String>("example5")
+        ->registerListener("listener", [](const std_msgs::String &message) {
+            std::cout << "Message received: " << message.data << std::endl;
+            std::cout << "Eventloop (subscriber) thread ID: " << std::this_thread::get_id()
+                      << std::endl;
+        });
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+        1)); // Ensures listener has been registered before publisher runs.
+
+    // Set up sample publisher.
+    std::thread t([&]() {
+        std_msgs::String msg;
+        msg.data = "Hello World!";
+        strpublisher->publish(msg);
+    });
+    t.join();
+
+    eventloop.getSubscriber<std_msgs::String>("example5")->removeListener("listener");
+    eventloop.stop();
+
+    return 0;
+}
+```
+In the above example we see that we use a `string` message from ROS types.
+The Klepsydra publisher and subscriber uses ROS message type to exchange data.
+
 ### DDS
 
 When Klepsydra is compiled and installed with DDS support, three DDS specific libraries are installed: `kpsr_dds_serialization_datamodel`, `kpsr_dds_core` and `kpsr_dds_core_datamodel`, and are available to be linked against using the environment variable `KLEPSYDRA_DDS_LIBRARIES`. The `kpsr_dds_serialization` provides DDS compatible types for primitive data types. As DDS requires message data types to be specified in an *.idl file, Klepsydra provides the primitive data types in wrapped formats which also include the sequence number field. The `kpsr_dds_serialization` also provides mapping functions to conveniently transform data from the primitive type to the dds specific type. 

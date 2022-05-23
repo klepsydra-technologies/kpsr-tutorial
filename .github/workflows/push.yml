@@ -26,7 +26,7 @@ jobs:
         password: ${{ secrets.ECR_PASSWORD }}
     steps:
       - name: Clone kpsr-core
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: klepsydra-technologies/kpsr-core
           ref: main
@@ -42,7 +42,7 @@ jobs:
         working-directory: kpsr-core
 
       - name: Clone project
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
 
@@ -95,7 +95,7 @@ jobs:
         password: ${{ secrets.ECR_PASSWORD }}
     steps:
       - name: Clone kpsr-core
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: klepsydra-technologies/kpsr-core
           submodules: recursive
@@ -111,7 +111,7 @@ jobs:
         working-directory: kpsr-core
 
       - name: Clone project
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: recursive
           path: kpsr-tutorial

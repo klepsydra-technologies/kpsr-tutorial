@@ -55,17 +55,21 @@ TARGET_LINK_LIBRARIES(${PROJ_NAME} atomic )
 #---------------------------------------------------#
 INSTALL(TARGETS ${PROJ_NAME}
     DESTINATION "${${PROJ_MAIN_NAME}_PATH_INSTALL}/lib/"
+    COMPONENT libs
 )
 INSTALL(DIRECTORY "include/klepsydra"
     DESTINATION "${${PROJ_MAIN_NAME}_PATH_INSTALL}/include"
+    COMPONENT dev
 )
 
 INSTALL(DIRECTORY ${${PROJ_MAIN_NAME}_PATH_MAIN}/gen/poco/include/klepsydra
     DESTINATION "${${PROJ_MAIN_NAME}_PATH_INSTALL}/include"
+    COMPONENT dev
 )
 
 INSTALL(DIRECTORY ${${PROJ_MAIN_NAME}_PATH_MAIN}/gen/rosstg/include/sensor_msgs
     DESTINATION "${${PROJ_MAIN_NAME}_PATH_INSTALL}/include"
+    COMPONENT dev
 )
 
 #PRINTBASICINFO(${PROJ_NAME})

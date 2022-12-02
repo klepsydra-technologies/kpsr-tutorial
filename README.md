@@ -10,14 +10,15 @@ Public tutorial for using Klepsydra API. It consists of three chapters:
 * [Chapter 2](./tutorials/chapter2.md) covers the ROS and DDS connection API.
 * [Chapter 3](./tutorials/chapter3.md) cover the code generator tool. It shows how to create a small application and build up to integrate with
 middlewares like ROS, ZMQ or DDS.
+* [Chapter 4](./tutorials/chapter4.md) covers the state machine.
 
-Each chapter has its corresponding code in the [examples](./examples) folder.
+Each chapter has its corresponding code in the [examples](./examples) folder. Note, chapter 3 examples for basic code generator are in the core [examples/core](./examples/core) folder while the location of middleware specific examples is noted in the respective tutorial sections.
 
 # Installation Instructions
 
 ## System dependencies
 
-* Ubuntu 14.04 or above
+* Ubuntu 18.04 or above
 * Google Tests (<https://github.com/klepsydra-technologies/googletest>)
 * ROS Indigo or above (optional)
 * DDS (optional)

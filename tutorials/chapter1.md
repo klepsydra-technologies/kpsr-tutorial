@@ -350,6 +350,61 @@ With this code, we have ensured that any vector published into the eventloop wil
 
 The last argument, a clone function that the publisher will use instead of standard copy, is also to increase performance. This is covered in depth in the [vision tutorial](https://github.com/klepsydra-technologies/kpsr-vision-ocv-tutorial).
 
+### Benchmark
+
+We have provided a small benchmarking example to demonstrate the performance benefits of eventloop. The main benchmarking block is shown below, and the complete benchmark is in file eventloop_benchmark_example.cpp.
+
+```cpp
+{
+        long totalExecutionTime = 0;
+        totalProcessed = 0;
+        totalLatency = 0;
+        long before = kpsr::TimeUtils::getCurrentMilliseconds();
+
+        spdlog::debug("starting benchmark...");
+
+        std::vector<std::thread> threads(0);
+        for (int index = 0; index < _numListeners; index++) {
+            threads.push_back(std::thread([this, index]() {
+                std::string name = "channel_" + std::to_string(index);
+                kpsr::Publisher<unsigned long long> *publisher =
+                    _eventLoop.getPublisher<unsigned long long>(name,
+                                                                _poolSize,
+                                                                nullptr,
+                                                                nullptr/*,
+                                                                _unsafeBufferPointer*/);
+                for (int i = 0; i < _numIterations; i++) {
+                    unsigned long long event = kpsr::TimeUtils::getCurrentNanosecondsAsLlu();
+                    publisher->publish(event);
+                    std::this_thread::sleep_for(std::chrono::microseconds(_sleepUS));
+                }
+            }));
+        }
+        long long unsigned int discardedMessages(0);
+        for (int i = 0; i < _numListeners; i++) {
+            threads[i].join();
+            std::string name = "channel_" + std::to_string(i);
+            auto eventLoopPublisher =
+                dynamic_cast<kpsr::high_performance::EventLoopPublisher<unsigned long long, 2048> *>(
+                    _eventLoop.getPublisher<unsigned long long>(name,
+                                                                _poolSize,
+                                                                nullptr,
+                                                                nullptr/*,
+                                                                _unsafeBufferPointer*/));
+            discardedMessages += eventLoopPublisher->_discardedMessages;
+        }
+
+        while (totalProcessed < (_numListeners * _numIterations - discardedMessages)) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        spdlog::debug("finishing benchmark.");
+
+        long after = kpsr::TimeUtils::getCurrentMilliseconds();
+        totalExecutionTime = after - before;
+        return totalExecutionTime;
+    }
+```
+
 ## Example 5: The data multiplexer.
 
 Let's look now at the second high performance API in Klepsydra: ```kpsr::high_perf::DataMultiplexerMiddlewareProvider```. This is a single-producer, multiple-consumer API for Klepsydra. We are going to extend example 3, so that we will have a second consumer of the vector that will calculate the module of the vector:

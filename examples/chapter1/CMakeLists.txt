@@ -83,6 +83,17 @@ TARGET_INCLUDE_DIRECTORIES(${PROJ_NAME}_4b
   ${CMAKE_CURRENT_SOURCE_DIR}/include 
   )
 
+ADD_EXECUTABLE(${PROJ_NAME}_eventloop_benchmark_example ${${PROJ_NAME}_HEADERS} src/eventloop_benchmark_example.cpp )
+TARGET_LINK_LIBRARIES(${PROJ_NAME}_eventloop_benchmark_example
+  PUBLIC
+  ${KLEPSYDRA_CORE_LIBRARIES}
+  )
+
+TARGET_INCLUDE_DIRECTORIES(${PROJ_NAME}_eventloop_benchmark_example 
+  PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  )
+
 
 ADD_EXECUTABLE(${PROJ_NAME}_5a ${${PROJ_NAME}_HEADERS} src/example5a.cpp )
 TARGET_LINK_LIBRARIES(${PROJ_NAME}_5a

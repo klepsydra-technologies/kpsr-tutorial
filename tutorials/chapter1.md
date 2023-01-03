@@ -407,7 +407,7 @@ int main() {
 
     {
         SumVectorData sumVectorData(
-            dataMultiplexer.getSubscriber(),
+            dataMultiplexer.getSubscriber("vector"),
             eventloop.getPublisher<float>("sum", 0, nullptr, nullptr));
         eventloop.getSubscriber<float>()->registerListener("sum", [](const float & message) {
             std::cout << "Sum received: " << message << std::endl;
@@ -416,7 +416,7 @@ int main() {
       );
 
       ModuleVectorData moduleVectorData(
-            dataMultiplexer.getSubscriber(),
+            dataMultiplexer.getSubscriber("vector"),
             eventloop.getPublisher<float>("mod", 0, nullptr, nullptr));
 
       eventloop.getSubscriber<float>()->registerListener("mod", [](const float & message) {
@@ -447,15 +447,84 @@ int main() {
 As it can be seen in this code, the ```kpsr::high_perf::DataMultiplexer``` has a similar API to other providers we have covered, however, it behaves very differently to other providers:
 
 * The templating occurs at the declaration level, similar to the event emitter. The data multiplexer is built to accelerate consumption of specific data, as opposed to the eventloop which is for general purpose.
-* This is the only provider that does not make use of the smart pool. It uses, instead, the internal ring-buffer itself as the pool of data. This makes it much more efficient. The initializer and clone functions though can be passed in a similar manner to the event emitter..
-* There is one subscriber in the provider, but listeners are the drivers of the processing:
-	* Registering a listener will start its own thread of execution. 
-	* Listeners in data multiplexer are invoked independently of each other.
-	* Data needed by a listener will be kept in the buffer until all listeners  are done processing it
+* This is the only provider that does not make use of the smart pool. It uses, instead, the internal ring-buffer itself as the pool of data. This makes it much more efficient. The initializer and clone functions though can be passed in a similar manner to the event emitter.
+* There is only one publisher in the provider, but we can add multiple subscribers and listeners.
+* Subscribers are the drivers of the processing:
+    * Starting a subscriber will start its own thread of execution.
+	* Subscribers in data multiplexer are invoked independently of each other.
+    * Each subscriber acts as its own event loop. All listeners registered to the same subscriber will run in the same thread.
+	* Data needed by a subscriber will be kept in the buffer until all listeners  are done processing it
 	* Listener will have access to the latest data only. If a listener is slow in processing, data multiplexer will skip old data and only provide it with the latest one.
 * There is no start or stop methods. The start is implicitly triggered when a listener is registered in the ```Subscriber```.
 
-* Then, there are five threads running:
+* In this example, there are four threads running:
+        * Main thread
+        * Eventloop Listener thread 
+        * Vector publisher thread
+        * DataMultiplexer Consumer: thread running the subscriber "vector" to which the module listener and sum listener are attached.
+        
+The two listeners are attached to the same subscriber, and so, they run in the same thread. The listeners are not completely independent of each other in this case. A slow listener will cause other listeners attached to the subscriber to miss data if the data is being published fast.
+
+Alternatively, the same example can be run by separating the listeners and registering them with different subscribers. In this case (example5b), the code changes only slightly. The only line that changes is the `getSubscriber` call, and we pass a different name for the subscriber in order to start a new subscriber thread. 
+
+```cpp
+#include <iostream>
+
+#include "sum_vector_data.h"
+#include "mod_vector_data.h"
+
+#include <klepsydra/high_performance/event_loop_middleware_provider.h>
+#include <klepsydra/high_performance/data_multiplexer_middleware_provider.h>
+
+int main() {
+    kpsr::high_performance::EventLoopMiddlewareProvider<16>eventloop(nullptr);
+
+    kpsr::high_performance::DataMultiplexerMiddlewareProvider<std::vector<float>, 4> dataMultiplexer(nullptr, "example5", nullptr, nullptr);
+
+    kpsr::Publisher<std::vector<float>> * vectorPublisher = dataMultiplexer.getPublisher();
+
+    eventloop.start();
+
+    {
+        SumVectorData sumVectorData(
+            dataMultiplexer.getSubscriber("sum"),
+            eventloop.getPublisher<float>("sum", 0, nullptr, nullptr));
+        eventloop.getSubscriber<float>()->registerListener("sum", [](const float & message) {
+            std::cout << "Sum received: " << message << std::endl;
+            std::cout << "Eventloop (subscriber - sum) thread ID: " << std::this_thread::get_id() << std::endl;
+         }
+      );
+
+      ModuleVectorData moduleVectorData(
+            dataMultiplexer.getSubscriber("mod"),
+            eventloop.getPublisher<float>("mod", 0, nullptr, nullptr));
+
+      eventloop.getSubscriber<float>()->registerListener("mod", [](const float & message) {
+            std::cout << "Module received: " << message << std::endl;
+            std::cout << "Eventloop (subscriber - mod) thread ID: " << std::this_thread::get_id() << std::endl;
+         }
+      );
+      std::thread vectorPublisherThread([&vectorPublisher]() {
+          for (int i = 0; i < 100; i ++) {
+            std::vector<float> vector(10);
+            for (int j = 0; j < 10; j++) {
+               vector[j] = static_cast<float>(j);
+            }
+            vectorPublisher->publish(vector);
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            std::cout << "vectorPublisherThread thread ID: " << std::this_thread::get_id() << std::endl;
+         }
+      });
+
+       vectorPublisherThread.join();
+    }
+
+    std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
+    eventloop.stop();
+}
+```
+
+In this example, there are five threads running:
         * Main thread
         * Eventloop Listener thread 
         * Vector publisher thread

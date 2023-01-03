@@ -37,7 +37,7 @@ int main()
     eventloop.start();
 
     {
-        SumVectorData sumVectorData(dataMultiplexer.getSubscriber(),
+        SumVectorData sumVectorData(dataMultiplexer.getSubscriber("sum"),
                                     eventloop.getPublisher<float>("sum", 0, nullptr, nullptr));
 
         eventloop.getSubscriber<float>("sum")->registerListener("sum", [](const float &message) {
@@ -46,7 +46,7 @@ int main()
                       << std::endl;
         });
 
-        ModuleVectorData moduleVectorData(dataMultiplexer.getSubscriber(),
+        ModuleVectorData moduleVectorData(dataMultiplexer.getSubscriber("mod"),
                                           eventloop.getPublisher<float>("mod", 0, nullptr, nullptr));
 
         eventloop.getSubscriber<float>("mod")->registerListener("mod", [](const float &message) {

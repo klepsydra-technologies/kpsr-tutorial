@@ -45,10 +45,6 @@ find_package(catkin REQUIRED COMPONENTS
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
-set(KPSR_LIBRARY_PATH ${KPSR_INSTALL_PATH}/lib)
-
-set(KPSR_INCLUDE_PATH ${KPSR_INSTALL_PATH}/include)
-
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
@@ -147,13 +143,8 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${KLEPSYDRA_INCLUDE_DIRS}
-  ${KPSR_INCLUDE_PATH}
   include
 )
-
-link_directories(${KLEPSYDRA_CORE_LIBRARIES})
-link_directories(${KPSR_LIBRARY_PATH})
 
 ## Declare a C++ library
 #add_library(kpsr_ros_codegen

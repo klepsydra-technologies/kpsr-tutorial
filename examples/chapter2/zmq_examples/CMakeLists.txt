@@ -23,11 +23,6 @@ PROJECT(${PROJ_NAME})
 
 #find cppzmq wrapper, installed by make of cppzmq
 find_package(cppzmq)
-# Include directories with headers
-#---------------------------------------------------#
-INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/include )
-include_directories( ${cppzmq_INCLUDE_DIR})
-INCLUDE_DIRECTORIES(${KLEPSYDRA_INCLUDE_DIRS})
 
 # Source
 #---------------------------------------------------#
@@ -41,6 +36,10 @@ FILE(GLOB ${PROJ_NAME}_HEADERS
 # Link libraries with Project
 #---------------------------------------------------#
 ADD_EXECUTABLE(${PROJ_NAME} ${${PROJ_NAME}_HEADERS} ${${PROJ_NAME}_SRC} )
+
+target_include_directories(
+    ${PROJ_NAME}
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 #---------------------------------------------------#
 TARGET_LINK_LIBRARIES(${PROJ_NAME}

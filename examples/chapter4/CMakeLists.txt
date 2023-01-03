@@ -21,6 +21,11 @@
 SET(PROJ_NAME kpsr_${PROJ_MAIN_NAME}_chapter4)
 PROJECT(${PROJ_NAME})
 
+list(FIND KLEPSYDRA_CORE_LIBRARIES "kpsr_state_machine" KPSR_STATE_MACHINE)
+if (KPSR_STATE_MACHINE EQUAL -1)
+  message(FATAL_ERROR "Klepsydra SDK installed without state machine. \
+Please reinstall by enabling YAML support (passing -DKPSR_WITH_YAML=true to cmake options)")
+endif()
 
 # Include directories with headers
 #---------------------------------------------------#

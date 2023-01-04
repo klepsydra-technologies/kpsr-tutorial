@@ -37,14 +37,6 @@ IF(DEFINED CMAKE_BUILD_TYPE)
   SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CMAKE_CONFIGURATION_TYPES})
 ENDIF()
 
-#Install binaries
-IF(DEFINED KPSR_INSTALL_PATH)
-ELSE()
-        SET(KPSR_INSTALL_PATH /opt/klepsydra) #default install path
-ENDIF()
-message(STATUS "Klepsydra tutorials install path: " ${KPSR_INSTALL_PATH})
-
-
 IF(DEFINED THIRDPARTIES_PATH)
 ELSE()
   SET(THIRDPARTIES_PATH ${CMAKE_SOURCE_DIR}/thirdparties )
@@ -67,7 +59,6 @@ message(STATUS "kpsr-build path: " ${KPSR_BUILD_PATH})
 
 # Paths
 SET(${PROJ_MAIN_NAME}_PATH_MAIN  ${CMAKE_SOURCE_DIR}                         CACHE PATH "This directory contains initial Path")
-SET(${PROJ_MAIN_NAME}_PATH_INSTALL       ${KPSR_INSTALL_PATH})
 SET(CMAKE_MODULE_PATH            ${KPSR_BUILD_PATH}/cmake)
 SET(LIBRARY_OUTPUT_PATH          ${PROJECT_BINARY_DIR}/bin                   CACHE PATH "Library output" FORCE)
 SET(EXECUTABLE_OUTPUT_PATH       ${PROJECT_BINARY_DIR}/bin                   CACHE PATH "Executable output" FORCE)
@@ -89,6 +80,9 @@ set(DDS_CODEGEN "False")
 endif()
 KpsrEventGenerator("${CMAKE_CURRENT_SOURCE_DIR}/kidl" "${CMAKE_CURRENT_SOURCE_DIR}/gen" "klepsydra/tutorial" "False" "True" "${DDS_CODEGEN}")
 
+# Must use GNUInstallDirs to install libraries into correct locations on all
+# platforms.
+include(GNUInstallDirs)
 include(CheckCXXCompilerFlag)
 include(CheckIncludeFileCXX)
 
@@ -164,7 +158,7 @@ if(NOT DEFINED KPSR_VERSION_PATCH)
   set(KPSR_VERSION_PATCH ${KLEPSYDRA_PATCH_VERSION})
 endif()
 
-set(KPSR_PACKAGE_DESCRIPTION "Klepsydra SDK Core Libraries")
-set(KPSR_PACKAGE_DESCRIPTION_SUMMARY "Klepsydra SDK Core Libraries")
+set(KPSR_PACKAGE_DESCRIPTION "Klepsydra SDK Tutorial")
+set(KPSR_PACKAGE_DESCRIPTION_SUMMARY "Klepsydra SDK Tutorial")
 
 include(KlepsydraPackaging)

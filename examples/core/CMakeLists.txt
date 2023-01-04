@@ -21,13 +21,6 @@
 SET(PROJ_NAME kpsr_${PROJ_MAIN_NAME}_example)
 PROJECT(${PROJ_NAME})
 
-# Include directories with headers
-#---------------------------------------------------#
-INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/include )
-INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/gen/poco/include )
-INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/modules/${PROJ_MAIN_NAME}/include )
-INCLUDE_DIRECTORIES( ${KLEPSYDRA_INCLUDE_DIRS} )
-
 # Source
 #---------------------------------------------------#
 FILE(GLOB ${PROJ_NAME}_SRC
@@ -42,6 +35,10 @@ LINK_DIRECTORIES(${KPSR_INSTALL_PATH}/lib )
 #---------------------------------------------------#
 ADD_EXECUTABLE(${PROJ_NAME}_1 ${${PROJ_NAME}_HEADERS} src/example1.cpp )
 
+target_include_directories(
+    ${PROJ_NAME}_1
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+    
 TARGET_LINK_LIBRARIES(${PROJ_NAME}_1
   kpsr_${PROJ_MAIN_NAME}
   kpsr_core
@@ -51,6 +48,10 @@ TARGET_LINK_LIBRARIES(${PROJ_NAME}_1
 
 ADD_EXECUTABLE(${PROJ_NAME}_2 ${${PROJ_NAME}_HEADERS} src/example2.cpp )
 
+target_include_directories(
+    ${PROJ_NAME}_2
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+
 TARGET_LINK_LIBRARIES(${PROJ_NAME}_2
   kpsr_${PROJ_MAIN_NAME}
   ${KLEPSYDRA_CORE_LIBRARIES}
@@ -58,6 +59,10 @@ TARGET_LINK_LIBRARIES(${PROJ_NAME}_2
 )
 
 ADD_EXECUTABLE(${PROJ_NAME}_3 ${${PROJ_NAME}_HEADERS} src/example3.cpp )
+
+target_include_directories(
+    ${PROJ_NAME}_3
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 TARGET_LINK_LIBRARIES(${PROJ_NAME}_3
   kpsr_${PROJ_MAIN_NAME}

@@ -99,7 +99,7 @@ jobs:
         with:
           repository: klepsydra-technologies/kpsr-core
           submodules: recursive
-          ref: main
+          ref: bugfix/pip-install-location
           path: kpsr-core
 
       - name: Install kpsr-core
@@ -119,6 +119,7 @@ jobs:
       - name: Install project
         run: |
           mkdir build && cd build
+          
           cmake -DCMAKE_BUILD_TYPE=Release ../
           make -j$(nproc)
           sudo make -j$(nproc) install

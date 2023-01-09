@@ -166,9 +166,13 @@ Klepsydra uses it own event loop to replicate the message sent by the publisher 
 * As noted in the previous chapter, we must remove the listener before stopping the event loop.
 * The sleep calls are included because as this is a multi-threaded application, the sleep ensures that sufficient time is given to the function calls to terminate. If we don't give enough time to the removeListener call, the event loop may get blocked in its stop() call.
 
-#### Example 3: A more complex example
+#### Example 3: A more complex example + Publishing with ROS types
 
-The previous example is intended to show the most basic use, and thus might appear too counter-intuitive in demonstrating the usage of Klepsydra. As in the previous chapter, we show the example with vector data used in this case. We reuse the class SumVectorData (with modifications to use ROS Float32MultiArray type). Ideally, we should separate our application from the middleware. However for simplicity, we use the existing ROS message type in this example. Klepsydra includes an `IdentityMapper` class which allows the use of middleware-specific data types in Klepsydra.
+The previous example is intended to show the most basic use, and thus might appear too counter-intuitive in demonstrating the usage of Klepsydra. As in the previous chapter, we show the example with vector data used in this case. In addition, we demonstrate another feature of using Klepsydra SDK with ROS - the ability to using existing ROS data types.
+
+Ideally, we should separate our application from the middleware. However, in some cases, it may be impractical to do so and the application code may use ROS message types internally. In such a case, it would be preferable to use the existing ROS message types directly with Klepsydra publishers and subscribers and avoid the overhead of transforming data from one type to another. For such a case, Klepsydra also provides an `IdentityMapper` class which allows the use of middleware-specific data types in Klepsydra.
+
+As ROS does not have a simple equivalent for `std::vector<float>` data type, we use the ROS `Float32MultiArray` for our example. It showcases perfectly the use case where writing a converter from `Float32MultiArray` to `std::vector<float>` would be impractical and modifying the `SumVectorData` to use the ROS data type instead would be the better option.
 
 As mentioned above, good programming practices encourage the application specific code to be independent of the middleware being used. The chapter 3 will show how you can use klepsydra to publish a data type by automatically mapping it to equivalent middleware-specific data types.
 
@@ -208,9 +212,8 @@ int main() {
        "vector", 10, eventloop.getPublisher<std_msgs::Float32MultiArray>("vector", 10, nullptr, nullptr));
    
    {
-      SumVectorData sumVectorData(
-            eventloop.getSubscriber<std::vector<float>>("vector"),
-            sumPublisher);
+      SumVectorData sumVectorData(eventloop.getSubscriber<std_msgs::Float32MultiArray>("vector"),
+                                    sumPublisher);
 
       // Define the ROS subscriber to receive the vector sum
       fromRosProvider.registerToTopic<float, std_msgs::Float32>(vectorSum.c_str(), 1, event.getPublisher<float>(vectorSum, 0, nullptr, nullptr);
@@ -242,8 +245,9 @@ int main() {
    eventloop.getSubscriber<float>(vectorSum)->removeListener("sum");
    eventloop.stop();
 }
-
 ```
+Examples 1, 2 and 3 thus demonstrate how Klepsydra can be used in two ways - by mapping simple ROS message types to simple POD types or by using existing ROS data types directly. The mapping function in either case is invisible to the application developer and is handled internally by the SDK.
+
 #### Example 4: ROS Env. 
 
 The ROS Env class is the Environment class built to function as the wrapper to the ROS parameter server. The ROSEnv allows us to access the parameters defined by the ROS parameter server. The following example shows how read data from a ROS middleware. 
@@ -274,104 +278,6 @@ int main(int argc, char **argv) {
 * The Environment class interface can be used to get and set values. When getting/setting a parameter, you must know the type of the parameter and use the relevant getter/setter. 
 * After running this example, you can verify that a new parameter `/paramFloat` exists with a value 1.5 using the `rosparam` command-line utility.
 
-#### Example 5: Exchange ROS Messages
-
-This example shows us that with Klepsydra core you can use ROS messages to exchange data between the nodes.
-
-```cpp
-#include "kpsr_tutorial_chp2_ros/simple_publisher.h"
-#include <iostream>
-#include <klepsydra/high_performance/event_loop_middleware_provider.h>
-#include <klepsydra/serialization/identity_mapper.h>
-#include <kpsr_ros_core/from_ros_middleware_provider.h>
-#include <kpsr_ros_core/to_ros_middleware_provider.h>
-#include <std_msgs/String.h>
-
-void callbackFunction(const std_msgs::String &message)
-{
-    std::cout << "Message received: " << message.data << std::endl;
-    std::cout << "Callback (ros subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
-}
-
-void rosTosKpsr(ros::NodeHandle &nodeHandle)
-{
-    std::string topicName1 = "tutorial_api_example5_1";
-    ros::Publisher strPublisher = nodeHandle.advertise<std_msgs::String>(topicName1, 20);
-    kpsr::ros_mdlw::FromRosMiddlewareProvider fromRosProvider(nodeHandle);
-    // Declare the eventloop and vector publisher
-    kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
-
-    eventloop.start();
-
-    // auto strpublisher = eventloop.getPublisher<std_msgs::String>("example5", 0, nullptr, nullptr);
-    fromRosProvider.registerToTopic<std_msgs::String>(
-        topicName1.c_str(),
-        10,
-        eventloop.getPublisher<std_msgs::String>(topicName1, 0, nullptr, nullptr));
-
-    eventloop.getSubscriber<std_msgs::String>(topicName1)
-        ->registerListener("listener", [](const std_msgs::String &message) {
-            std::cout << "Message received: " << message.data << std::endl;
-            std::cout << "Eventloop (subscriber) thread ID: " << std::this_thread::get_id()
-                      << std::endl;
-        });
-    std::this_thread::sleep_for(std::chrono::milliseconds(
-        1)); // Ensures listener has been registered before publisher runs.
-
-    // Set up sample publisher.
-    std_msgs::String msg;
-    msg.data = "ROS message from ROS";
-    strPublisher.publish(msg);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    ros::spinOnce();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-    eventloop.getSubscriber<std_msgs::String>("example5")->removeListener("listener");
-    eventloop.stop();
-}
-
-void kpsrToRos(ros::NodeHandle &nodeHandle)
-{
-    std::string topicName2 = "tutorial_api_example5_2";
-    ros::Publisher stringPublisher = nodeHandle.advertise<std_msgs::String>(topicName2, 1);
-
-    ros::Subscriber sub = nodeHandle.subscribe(topicName2, 1000, callbackFunction);
-
-    kpsr::ros_mdlw::ToRosMiddlewareProvider toRosProvider(nullptr);
-
-    kpsr::Publisher<std_msgs::String> *kpsrPublisher =
-        toRosProvider.getToMiddlewareChannel<std_msgs::String>(topicName2,
-                                                               1,
-                                                               nullptr,
-                                                               stringPublisher);
-    std_msgs::String msg;
-    msg.data = "ROS message from KPSR";
-    kpsrPublisher->publish(msg);
-    std::cout << "KPSR (publisher) thread ID: " << std::this_thread::get_id() << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    ros::spinOnce();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-int main(int argc, char **argv)
-{
-    ros::init(argc, argv, "kpsr_ros_subscriber");
-    ros::NodeHandle nodeHandle;
-
-    std::thread t1([&]() { rosTosKpsr(nodeHandle); });
-
-    std::thread t2([&]() { kpsrToRos(nodeHandle); });
-
-    t1.join();
-    t2.join();
-
-    return 0;
-}
-```
-In the above example we see that we use a `std_msgs::String` message from ROS types to exchange data. We use the same examples from example 1 and example 2 from this chapter.
-As you see we have two threads,
-* In thread `rosToKpsr`, we use a ROS publisher to publish a message of type `std_msgs::String`. This message is then received by the Klepsydra subscriber.
-* In thread `kpsrToRos`, we use a Klepsydra publisher to publish a message of type `std_msgs::String`. This message is then received by the ROS subscriber.
 
 ### DDS
 

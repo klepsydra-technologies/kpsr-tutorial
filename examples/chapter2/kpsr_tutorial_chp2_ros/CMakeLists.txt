@@ -118,7 +118,6 @@ catkin_package(
 include_directories(
 include
 ${catkin_INCLUDE_DIRS}
-${KLEPSYDRA_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -138,7 +137,6 @@ add_executable(${PROJECT_NAME}_ex1 src/example1.cpp)
 add_executable(${PROJECT_NAME}_ex2 src/example2.cpp)
 add_executable(${PROJECT_NAME}_ex3 src/example3.cpp)
 add_executable(${PROJECT_NAME}_ex4 src/example4.cpp)
-add_executable(${PROJECT_NAME}_ex5 src/example5.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -155,19 +153,16 @@ add_executable(${PROJECT_NAME}_ex5 src/example5.cpp)
 target_link_libraries(${PROJECT_NAME}_ex1
   ${catkin_LIBRARIES}
   atomic
-  ${KLEPSYDRA_CORE_LIBRARIES}
  )
 
 target_link_libraries(${PROJECT_NAME}_ex2
   ${catkin_LIBRARIES}
   atomic
-  ${KLEPSYDRA_CORE_LIBRARIES}
  )
 
 target_link_libraries(${PROJECT_NAME}_ex3
   ${catkin_LIBRARIES}
   atomic
-  ${KLEPSYDRA_CORE_LIBRARIES}
  )
 
 target_link_libraries(${PROJECT_NAME}_ex4
@@ -175,10 +170,6 @@ target_link_libraries(${PROJECT_NAME}_ex4
   atomic
 )
 
-target_link_libraries(${PROJECT_NAME}_ex5
-  ${catkin_LIBRARIES}
-  atomic
-)
 #############
 ## Install ##
 #############

@@ -1,3 +1,17 @@
+# Copyright 2023 Klepsydra Technologies AG
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 name: Check builds
 
 on:
@@ -35,7 +49,7 @@ jobs:
 
       - name: Build and install kpsr-core
         run: |
-          mkdir build && cd build 
+          mkdir build && cd build
           cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=true -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} ../ 
           make -j$(nproc)
           make install
@@ -83,7 +97,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rosrelease: ["melodic", "noetic"]
+        rosrelease: ["noetic"]
     name: ROS ${{ matrix.rosrelease }}
     env:
       ROS_DISTRO: ${{ matrix.rosrelease }}
@@ -99,7 +113,7 @@ jobs:
         with:
           repository: klepsydra-technologies/kpsr-core
           submodules: recursive
-          ref: bugfix/pip-install-location
+          ref: main
           path: kpsr-core
 
       - name: Install kpsr-core
@@ -119,7 +133,7 @@ jobs:
       - name: Install project
         run: |
           mkdir build && cd build
-          
+
           cmake -DCMAKE_BUILD_TYPE=Release ../
           make -j$(nproc)
           sudo make -j$(nproc) install
@@ -131,7 +145,7 @@ jobs:
           mkdir -p ${GITHUB_WORKSPACE}/kpsr-ros/src/build
           cd ${GITHUB_WORKSPACE}/kpsr-ros/src
           catkin_init_workspace
-          ln -s ${GITHUB_WORKSPACE}/kpsr-core/core/modules/ros_mdlw/kpsr_ros_core . 
+          ln -s ${GITHUB_WORKSPACE}/kpsr-core/core/modules/ros_mdlw/kpsr_ros_core .
           ln -s ${GITHUB_WORKSPACE}/kpsr-core/serialization/modules/ros_mdlw/kpsr_ros_serialization .
           ln -s ${GITHUB_WORKSPACE}/kpsr-tutorial/examples/chapter1 .
           ln -s ${GITHUB_WORKSPACE}/kpsr-tutorial/examples/chapter2 .

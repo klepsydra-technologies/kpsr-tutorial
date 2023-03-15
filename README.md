@@ -19,11 +19,11 @@ Each chapter has its corresponding code in the [examples](./examples) folder. No
 ## System dependencies
 
 * Ubuntu 18.04 or above
-* Google Tests (<https://github.com/klepsydra-technologies/googletest>)
 * ROS Indigo or above (optional)
 * DDS (optional)
-* Cmake 3.5.1 or above
+* CMake 3.5.1 or above
 * gcc for C++11 5.4.0 or above.
+* Google Tests (<https://github.com/klepsydra-technologies/googletest>)
 
 Note that Google Tests is pulled in automatically when installing this project and does not need separate installation.
 
@@ -37,8 +37,8 @@ No separate installation is needed for the following dependencies if the Klepsyd
 
 ## Klepsydra dependencies
 
-* kpsr-core (installed with yaml support)
-* kpsr-build (<https://github.com/klepsydra-technologies/kpsr-build>)
+* [kpsr-core](https://github.com/klepsydra-technologies/kpsr-core) (installed with yaml support)
+* [kpsr-build](https://github.com/klepsydra-technologies/kpsr-build)
 
 kpsr-build will be pulled in automatically by the install process of this project.
 
@@ -49,12 +49,10 @@ project, then the Klepsydra software must have been installed using the
 `-DKPSR_WITH_DDS=true` and `-DKPSR_WITH_ROS=true` arguments with cmake.
 
 ```bash
-sudo apt install build-essentials
-sudo apt install git
-sudo apt install cmake
+sudo apt install build-essentials git cmake
 ```
 
-Given ```$KLEPSYDRA_HOME```, for example ```$HOME/klepsydra```:
+Given `$KLEPSYDRA_HOME`, for example `$HOME/klepsydra`:
 
 ```bash
 cd $KLEPSYDRA_HOME
@@ -70,15 +68,19 @@ make test
 
 The cmake has the following options:
 
-* -DKPSR_INSTALL_PATH to specify where kpsr-tutorial binaries should be installed (/opt/klepsydra by default)
-* -DKPSR_WITH_DDS for building the DDS version of the tutorial.
+* -DCMAKE_PREFIX_PATH Klepsydra SDK installation location (`/usr/local` by default), same as -DCMAKE_INSTALL_PREFIX when building kpsr-core
+* -DKPSR_INSTALL_PATH to specify where kpsr-tutorial binaries should be installed (`/opt/klepsydra` by default)
+* -DKPSR_WITH_DDS for building the DDS version of the tutorial
+
+The examples binaries, such as `kpsr_tutorial_chapter1_1`, are located at `build/bin/`
+<!--- FIXME make install? -->
 
 ### Install process for ROS Examples
 
 For compiling ROS examples, we further need to install the kpsr-tutorial module. This can be done by running (after the above build process):
 
 ```bash
-make install
+sudo make install
 ```
 
 Next, make a symlink in your ROS catkin workspace to point to  the ROS subfolder of this project.

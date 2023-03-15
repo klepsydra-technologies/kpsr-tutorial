@@ -100,6 +100,8 @@ This examples shows several features of Klepsydra already. Let's have a look at 
 
 There is only one thread running which is the Main thread.
 
+### Sample output
+
 ```text
 $ bin/kpsr_tutorial_chapter1_1
 
@@ -148,6 +150,8 @@ In this case, the number of threads increase. There are two threads running:
 
 * Main thread
 * Eventloop Listener thread: thread running the EventLoop listener, which is the only thread that will handle all the listeners associated to all subscribers.
+
+### Sample output
 
 ```text
 $ bin/kpsr_tutorial_chapter1_2

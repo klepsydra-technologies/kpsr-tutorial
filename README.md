@@ -80,8 +80,10 @@ The examples binaries, such as `kpsr_tutorial_chapter1_1`, are located at `build
 For compiling ROS examples, we further need to install the kpsr-tutorial module. This can be done by running (after the above build process):
 
 ```bash
-sudo make install
+make install
 ```
+
+If the default value of `CMAKE_INSTALL_PREFIX` or `KPSR_INSTALL_PATH` is used, then `sudo` may be necessary.
 
 Next, make a symlink in your ROS catkin workspace to point to  the ROS subfolder of this project.
 

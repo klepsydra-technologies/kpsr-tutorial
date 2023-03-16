@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
         "vector");
     kpsr::Publisher<int> *intPublisher = eventLoop.getPublisher<int>("max", 0, nullptr, nullptr);
 
-    vectorSubscriber->registerListener("vector_listener", [&intPublisher](const std::vector<int> v) {
+    vectorSubscriber->registerListener("vector_listener", [&intPublisher](const std::vector<int> &v) {
         std::cout << "Vector received [" << v.front() << ",...," << v.back() << "] at thread "
                   << std::this_thread::get_id() << std::endl;
         int m = *std::max_element(std::begin(v), std::end(v));
@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
     eventLoop.stop();
-    intSubscriber->removeListener("max");
-    vectorSubscriber->removeListener("v_max");
+    intSubscriber->removeListener("vector_listener");
+    vectorSubscriber->removeListener("int_listener");
 
     return 0;
 }

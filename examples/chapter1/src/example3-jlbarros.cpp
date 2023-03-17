@@ -19,14 +19,16 @@ int main(int argc, char *argv[])
         "vector");
     kpsr::Publisher<int> *intPublisher = eventLoop.getPublisher<int>("max", 0, nullptr, nullptr);
 
-    vectorSubscriber->registerListener("vector_listener", [&intPublisher](const std::vector<int> &v) {
-        std::cout << "Vector received [" << v.front() << ",...," << v.back() << "] at thread "
-                  << std::this_thread::get_id() << std::endl;
-        int m = *std::max_element(std::begin(v), std::end(v));
-        intPublisher->publish(m);
-        std::cout << "Max published " << m << " at thread " << std::this_thread::get_id()
-                  << std::endl;
-    });
+    vectorSubscriber->registerListener("vector_listener",
+                                       [&intPublisher](const std::vector<int> &v) {
+                                           std::cout << "Vector received [" << v.front() << ",...,"
+                                                     << v.back() << "] at thread "
+                                                     << std::this_thread::get_id() << std::endl;
+                                           int m = *std::max_element(std::begin(v), std::end(v));
+                                           intPublisher->publish(m);
+                                           std::cout << "Max published " << m << " at thread "
+                                                     << std::this_thread::get_id() << std::endl;
+                                       });
 
     kpsr::Subscriber<int> *intSubscriber = eventLoop.getSubscriber<int>("max");
     intSubscriber->registerListener("int_listener", [](const float &m) {

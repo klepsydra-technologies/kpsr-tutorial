@@ -4,17 +4,27 @@
 
 # Chapter 3. Part I Core functionality
 
+## Table of contents
+* [Introduction](#introduction)
+* [Generate headers for message objects](#generate-headers-for-message-objects)
+* [Klepsydra Core API](#klepsydra-core-api)
+* [Bringing everything together](#bringing-everything-together)
+* [Note on threading](#note-on-threading)
+
+<a name="introduction"></a>
+## Introduction
+
 In this case we deal with the case involving no middlewares. We deal
 with simple C++ objects being used to transmit and receive
 messages.
 
-
+<a name="generate-headers-for-message-objects"></a>
 ## Generate headers for message objects
 
 The kpsr-code-generation package, if installed correctly, has the
 `kpsr_codegen` utility to generate header files based on a YAML file
 describing the structure of the message. We use the BatteryState and
-Temperature message used by ROS as a template to define the
+Temperature messages used by ROS as a template to define the
 message. (Note, ROS is not necessary. We are only using their message
 types as a base to start off from.)
 
@@ -38,6 +48,7 @@ Since we pass the `klepsydra/tutorial` as prefix to the codgen command
 `gen/poco/include/klepsydra/tutorial` folder. The CMakeLists file has
 been configured to include the correct necessary paths.
 
+<a name="klepsydra-core-api"></a>
 ## Klepsydra Core API
 
 The aim of this tutorial is to now use the generated messages and the
@@ -45,7 +56,7 @@ service classes with the klepsydra core (and mem_core) API to make a
 working example where a low battery value causes the cubesat to stop.
 
 For this, we look at the Middle Provider classes available to use. The
-`mem_core` module provides a `BasicMiddlewareProvider` class which
+`mem_core` module provides a [`BasicMiddlewareProvider`](https://github.com/klepsydra-technologies/kpsr-core/blob/main/core/modules/mem_mdlw/include/klepsydra/mem_core/basic_middleware_provider.h) class which
 holds a pair of publisher and subscribers, which are each attached to
 a topic (given by its name during instantiation).
 
@@ -60,11 +71,12 @@ with multiple subscribers, you MUST add a mutex to the
 The templated class `BasicMiddlewareProvider` gives us access to each
 respective sensor publisher/subscriber pair.
 
+<a name="bringing-everything-together"></a>
 ## Bringing everything together
 
 We bring all these ideas together to write the first example using our
 custom service classes and the API provided by klepsydra core. (The
-final files for these tutorials are in the `examples/core/` folder.)
+final files for these tutorials are in the [`examples/core/`](../examples/core/) folder.)
 
 Using the middleware provider `BasicMiddlewareProvider` from the
 `mem_core` module, we can get a subscriber/publisher pair for each
@@ -78,9 +90,10 @@ We just need to ensure that the providers have started polling by
 calling the start() methods before starting the publisher thread (so
 that we don't miss any data).
 
-The example1.cpp can be compiled using cmake and the binary is
+The [`example 1`](../examples/core/src/example1.cpp) can be compiled using cmake and the binary is
 available as `kpsr_tutorial_example_1`.
 
+<a name="note-on-threading"></a>
 ## Note on threading
 
 This case describes a simple case where we don't have to worry about

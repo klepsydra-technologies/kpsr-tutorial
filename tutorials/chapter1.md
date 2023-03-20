@@ -4,6 +4,27 @@
 
 # Chapter 1
 
+## Table of contents
+* [Pre-requisites](#pre-requisites)
+* [Technical requirements](#technical-requirements)
+* [Introduction](#introduction)
+* [Example 1: The "Hello world!" example](#example-1)
+* [Example 2: The eventloop ](#example-2)
+* [Example 3: Unit testing](#example-3)
+* [Example 4: A note on performance](#example-4)
+  * [Publication API](#publication-api)
+  * [Smart Memory Pool](#smart-memory-pool)
+  * [Benchmark](#benchmark)
+* [Example 5: The data multiplexer](#example-5)
+* [Example 6: Working with services](#example-6)
+  * [Service](#service)
+  * [Environment](#environment)
+  * [Managed services](#managed-services)
+    * [A message type to control services](#a-message-type-to-control-services)
+    * [Managed Service Example](#managed-service-example)
+* [Example 7: The EventTransformForwarder](#example-7)
+
+<a name="pre-requisites"></a>
 ## Pre-requisites
 
 * Medium level of C++ and basic understanding of C++11 [share pointers](https://en.cppreference.com/w/cpp/memory/shared_ptr) and [lambda functions](https://en.cppreference.com/w/cpp/language/lambda).
@@ -15,12 +36,14 @@
 
 For the ROS tutorial, basic knowledge of ROS is required and similarly for the DDS tutorial, RTI DDS understanding is required.
 
+<a name="technical-requirements"></a>
 ## Technical requirements
 
 Installation of Klepsydra Core, Optionally ROS, DDS.
 
-Klepsydra is installed (by default) to /usr/local by CMake. To develop an application using Klepsydra use the cmake command `find_package(Klepsydra)` in the CMakeLists file.. With this command, the Klepsydra includes are available in the variable `KLEPSYDRA_INCLUDE_DIRS` and the libraries are available using the variable `KLEPSYDRA_CORE_LIBRARIES`. The CMakeLists file provided for compiling the examples in the tutorial demonstrate how these two variables are used.
+Klepsydra is installed (by default) to /usr/local by CMake. To develop an application using Klepsydra use the cmake command `find_package(Klepsydra)` in the CMakeLists file. With this command, the Klepsydra includes are available in the variable `KLEPSYDRA_INCLUDE_DIRS` and the libraries are available using the variable `KLEPSYDRA_CORE_LIBRARIES`. The CMakeLists file provided for compiling the examples in the tutorial demonstrate how these two variables are used.
 
+<a name="introduction"></a>
 ## Introduction
 
 Klepsydra API is split into main groups:
@@ -30,7 +53,8 @@ Klepsydra API is split into main groups:
 
 This tutorial does not intend to cover the complete API of Klepsydra Core, but to explain the key programming features of it. For a full comprehensive description of the API, please refer to the [api-doc](https://github.com/klepsydra-technologies/kpsr-core/tree/master/api-doc) folder of the kpsr-core repository.
 
-## Example 1: The "Hello world!" example.
+<a name="example-1"></a>
+## Example 1: The "Hello world!" example
 
 Lets start with a simple example. First, let's create a class that publishes a string:
 
@@ -96,11 +120,11 @@ This examples shows several features of Klepsydra already. Let's have a look at 
    * the api gives pointers to ```kpsr::Publisher``` and ```kpsr::Subscriber```
 
 *    ```provider.getSubscriber()->registerListener``` is the API to register a consumer for events in Klepsydra. A name and a lambda function are the arguments.
-*    ```provider.getSubscriber()->removeListener``` is the API to remove a consumer from the ```Subcriber```. In order to avoid unexpected behaviour at shutting down applications, it is stringly recommended to remove listeners before stopping threads or middleware providers.
+*    ```provider.getSubscriber()->removeListener``` is the API to remove a consumer from the ```Subcriber```. In order to avoid unexpected behaviour at shutting down applications, it is strongly recommended to remove listeners before stopping threads or middleware providers.
 
 There is only one thread running which is the Main thread.
 
-
+<a name="example-2"></a>
 ## Example 2: The eventloop
 
 As suggested before, the ```EventEmitterMiddlewareProvider``` is a test only provider, so let's change it for one of the two main high performance providers in Klepsydra: **The Event Loop**:
@@ -142,11 +166,8 @@ In this case, the number of threads increase. There are two threads running:
 * Main thread
 * Eventloop Listener thread: thread running the EventLoop listener, which is the only thread that will handle all the listeners associated to all subscribers. 
 
-
-
-
-## Example 3: Unit testing. 
-
+<a name="example-3"></a>
+## Example 3: Unit testing
 Now, lets take a step further in the concept of separation of the application API and composition API. In asynchronous programming, methods will publish data instead of returning data:
 
 ```cpp
@@ -270,7 +291,7 @@ int main() {
 }
 ```
 
-This example shows a slightly more advanced use of the event loop. In this case, there are two threads, one that publishes vector data, this somehow resembles an external source of data. Then there is the event loop thread that consumes the data, but in the case, the sum vector class also publishes data to the eventloop. This is one of the main features of the event loop: being able to receive data from multiple sources, including the consumer thread. This behaviour, instrumental in asyc programming, can be found in other event loops, like the Event Emitter in NodeJs (TODO LINK).
+This example shows a slightly more advanced use of the event loop. In this case, there are two threads, one that publishes vector data, this somehow resembles an external source of data. Then there is the event loop thread that consumes the data, but in this case, the sum vector class also publishes data to the eventloop. This is one of the main features of the event loop: being able to receive data from multiple sources, including the consumer thread. This behaviour, instrumental in asyc programming, can be found in other event loops, like the Event Emitter in NodeJs (TODO LINK).
 
 Then, there are three threads running:
 
@@ -278,14 +299,14 @@ Then, there are three threads running:
 * The Event Loop listener thread
 * Vector publisher thread: thread running the vector publisher 
 
-Another important point of this example is that we have shown the use of the same class in two different middleware provider setups: unit test and real application. This one of the main programmatic concepts in Klepsydra. The main principle behind is to have complete separation of application and composition code.
+Another important point of this example is that we have shown the use of the same class in two different middleware provider setups: unit test and real application. This is one of the main programmatic concepts in Klepsydra. The main principle behind is to have complete separation of application and composition code.
 
+<a name="example-4"></a>
 ## Example 4: A note on performance
-
 By default, the ```publish(T & event)``` method in all implementations makes a copy of the ```event``` object. In some cases, this copy might have to be prevented, or at least, ensure that no memory allocations happen during execution of applications. There are two ways to make this more efficient:
 
+<a name="publication-api"></a>
 ### Publication API
-
 By using the ```publish(std::shared_ptr<const T> & event)``` API instead. This will make direct use of the provided object instead of creating a copy. For example, we could change the code of the main block in example 3:
 
 ```cpp
@@ -307,9 +328,10 @@ By using the ```publish(std::shared_ptr<const T> & event)``` API instead. This w
 
 This will prevent any copies of the vector when publishing.
 
+<a name="smart-memory-pool"></a>
 ### Smart Memory Pool
 
-The above code is simple and efficient, but in a sensor data publication scenario, it might not be possible. In those cases, performance and number of allocations can also be improved by using the smart object pool in Klepsydra. ```kpsr:: SmartObjectPool``` is the main API for this and i ensures that during the publication copy, no memory allocation happens.
+The above code is simple and efficient, but in a sensor data publication scenario, it might not be possible. In those cases, performance and number of allocations can also be improved by using the smart object pool in Klepsydra. ```kpsr:: SmartObjectPool``` is the main API for this and it ensures that during the publication copy, no memory allocation happens.
 
 Let's look again at the example 3 main file:
 
@@ -350,6 +372,7 @@ With this code, we have ensured that any vector published into the eventloop wil
 
 The last argument, a clone function that the publisher will use instead of standard copy, is also to increase performance. This is covered in depth in the [vision tutorial](https://github.com/klepsydra-technologies/kpsr-vision-ocv-tutorial).
 
+<a name="benchmark"></a>
 ### Benchmark
 
 We have provided a small benchmarking example to demonstrate the performance benefits of eventloop. The main benchmarking block is shown below, and the complete benchmark is in file eventloop_benchmark_example.cpp.
@@ -405,7 +428,8 @@ We have provided a small benchmarking example to demonstrate the performance ben
     }
 ```
 
-## Example 5: The data multiplexer.
+<a name="example-5"></a>
+## Example 5: The data multiplexer
 
 Let's look now at the second high performance API in Klepsydra: ```kpsr::high_perf::DataMultiplexerMiddlewareProvider```. This is a single-producer, multiple-consumer API for Klepsydra. We are going to extend example 3, so that we will have a second consumer of the vector that will calculate the module of the vector:
 
@@ -588,10 +612,12 @@ In this example, there are five threads running:
 
 There is an extensive use of the DataMultiplexer in the [vision tutorial](https://github.com/klepsydra-technologies/kpsr-vision-ocv-tutorial).
 
+<a name="example-6"></a>
 ## Example 6: Working with services
 
 We are going to introduce now the API for ```kpsr::Service```, ```kpsr::Environment``` and ```kpsr::ManagedService```. These classes are not really necessary to benefit from the high performance API of Klepsydra, but might be of help.
 
+<a name="service"></a>
 ### Service
 
 The ```kpsr::Service``` allows one to define a task which will run in the background, which can be administered remotely and/or which need to be run at regular intervals. The ```kpsr::Service``` class is used by means of inheritance. I.e., custom services must extend from this class. ```kpsr::Service``` has three pure virtual methods:
@@ -634,7 +660,7 @@ private:
 
 Now this publisher service can be started using its startup() command, stopped using shutdown() command, and the runOnce() command will publish the intended message. Note that the publisher does not need any setup procedure and that is why the start and stop functions are empty.
 
-Notice the constructor call of the service. The Service class needs three parameters: a pointer to kpsr::Environment, a std::string containing the name of the service, and a bool (default to true) to signify if service is master or not. The Environment class will be explained in the next section. In these example we don't use any environments and the `nullptr` is passed instead.
+Notice the constructor call of the service. The Service class needs three parameters: a pointer to kpsr::Environment, a std::string containing the name of the service, and a bool (default to true) to signify if service is master or not. The Environment class will be explained in the next section. In this example we don't use any environments and the `nullptr` is passed instead.
 
 Similar to the publisher service we can have a basic subscriber as a service.
 ```cpp
@@ -730,6 +756,7 @@ private:
 
 Now, this service can be started using the public function ```startup``` and it will start monitoring the battery topic and if the battery levels go below the threshold, it will print the "Stop the application" command. 
 
+<a name="environment"></a>
 ### Environment
 
 If we see the previous example, it becomes clear that the threshold value for the battery must be hard coded into the code. However, in real cases, it would be preferable to have such data depend on the real environment. The code for services should not have to be modified according to the environment in which the application is running. For example, one should be able to provide a configuration file to set these values, or for example, in case of ROS system provide run time values via command line.
@@ -762,10 +789,12 @@ Using the environment api, the relevant ControlService code changes as shown bel
     }
 ```
 
+<a name="managed-services"></a>
 ### Managed Services
 
 Klepsydra provides a `kpsr::ManagedService` class that starts or stops a service depending on the `kpsr::SystemEventData` value that is sent. This allows us to connect one service to another. For example, in the previous example, the actual application code would be a managed service, and it will respond to the messages sent by the control service appropriately.
 
+<a name="a-message-type-to-control-services"></a>
 #### A message type to control services
 
 Klepsydra offers a special datatype ```kpsr::SystemEventData``` for the specific purpose of communicating if a certain service or application has to be started or stopped. We can thus improve the previous control by using it as shown below::
@@ -789,13 +818,13 @@ protected:
     void ControlService::start() {
         std::function<void(float)> listenerFunction = [this](const float event) {
             float lowThreshold;
-            this->environment->getFloatProperty("low_threshold", lowThreshold);
+            this->_environment->getFloatProperty("low_threshold", lowThreshold);
             if (lowThreshold >= event) {
                 _statusPublisher->publish(kpsr::SystemEventData::Stop);
             }
-            float lowThreshold;
-            this->environment->getFloatProperty("low_threshold", lowThreshold);
-            if (lowThreshold >= event) {
+            float highThreshold;
+            this->_environment->getFloatProperty("low_threshold", highThreshold);
+            if (highThreshold <= event) {
                 _statusPublisher->publish(kpsr::SystemEventData::Start);
             }
         }
@@ -812,8 +841,9 @@ private:
 };
 }
 ```
-The application that needs to be stopped can now by handled by using a subscriber to the status publisher. This also makes testing the Control Service easier. The unit test `example6b.cpp` in the tests folder provides an example of usage of the environment and how to test the internal logic of the Control Service.
+The application that needs to be stopped can now be handled by using a subscriber to the status publisher. This also makes testing the Control Service easier. The unit test `example6b.cpp` in the tests folder provides an example of usage of the environment and how to test the internal logic of the Control Service.
 
+<a name="managed-service-example"></a>
 #### Managed Service Example
 
 The managed service class constructor needs as input parameters the environment pointer, a subscriber of SystemEventData messages, and a name for the class. A simple managed service could be as follows:
@@ -843,12 +873,12 @@ protected:
 
 We provide an example (using the previously defined ControlService) along with a unit test (example6c.cpp)
 
+<a name="example-7"></a>
+## Example 7: The EventTransformForwarder
 
-## Example 7: The EventTransformForward
+We are going to introduce the ```kpsr::EventTransformForwarder``` which is an optimised forwarding helper class. Its purpose is to optimise memory allocation and callstack when processing events, transforming and forwarding them.
 
-We are going to introduce the ```kpsr::EvenTransformForwarder``` which is an optimised forwarding helper class. Its purpose is to optimise memory allocation and callstack when processing events, transforming and forwarding them.
-
-So, in the next example a ```kpsr::EvenTransformForwarder``` object obtains the size of a string and publishes it.
+So, in the next example a ```kpsr::EventTransformForwarder``` object obtains the size of a string and publishes it.
 
 ```cpp
 #include <iostream>
@@ -896,20 +926,20 @@ int main() {
 ```
 
 * It is important to clarify that the ```kpsr::EventTransformForwarder<std::string, int> eventTransformer``` constructor receives two parameters:
-    * the Forwarder Listener Function: where the transforming task is done. In this example the transforming task consists of obtaining the size of one string.
-    * the Publisher: who does the forwarding task. In this example the publisher is called ```kpsr::Publisher<int> sizeStringPublisher``` and it publishes the size of one string (size obtained by the Forwarder Listener Function).
+    * The Forwarder Listener Function: where the transforming task is done. In this example the transforming task consists of obtaining the size of one string.
+    * The Publisher: who does the forwarding task. In this example the publisher is called ```kpsr::Publisher<int> sizeStringPublisher``` and it publishes the size of one string (size obtained by the Forwarder Listener Function).
 
-* So, the communication flow of this example is the next
+* So, the communication flow of this example is the next:
 
     * The ```kpsr::Publisher<std::string> stringPublisher``` publishes strings with different size.
 
-    * The ```kpsr::Subscriber<std::string> stringSubscriber``` receives the strings publishes by ```kpsr::Publisher<std::string> stringPublisher```. When it receives a published string, the ```eventTransformer.forwarderListenerFunction``` is called automatically due to the Register Listener function of ```kpsr::Subscriber<std::string> stringSubscriber``` receives as one of its parameters the ```eventTransformer.forwarderListenerFunction```. So, the size of this string is obtained.
+    * The ```kpsr::Subscriber<std::string> stringSubscriber``` receives the strings published by ```kpsr::Publisher<std::string> stringPublisher```. When it receives a published string, the ```eventTransformer.forwarderListenerFunction``` is called automatically since it has been specified as the Listener function of `stringSubscriber`, and the size of this string is obtained.
 
     * The ```kpsr::Publisher<int> sizeStringPublisher``` publishes the size of the string because it is the publisher of ```kpsr::EventTransformForwarder<std::string, int> eventTransformer```.
 
-    * The ```kpsr::Subscriber<int> sizeStringSubscriber``` receives the size of the string and prints out it. 
+    * The ```kpsr::Subscriber<int> sizeStringSubscriber``` receives the size of the string and prints it out. 
 
-* In the next image we can see the ouput of this example. The size of three different strings published is shown. As you can see, the first string published is "Example" and its size is 7. The second string is "Example about" and its size is 13. Finally, the third string is "Example about EvenTransformForwarder" and its size is 37.
+* In the next image we can see the ouput of this example. The size of three different strings published is shown. As you can see, the first string published is "Example" and its size is 7. The second string is "Example about" and its size is 13. Finally, the third string is "Example about EventTransformForwarder" and its size is 37.
 
 <p align="center">
   <img width="50%" height="50%" src="../images/chapter1_example7.png">

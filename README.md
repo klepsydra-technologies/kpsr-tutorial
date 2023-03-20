@@ -7,6 +7,7 @@
 Public tutorial for using Klepsydra API. It consists of three chapters:
 
 * [Chapter 1](./tutorials/chapter1.md) covers the core API of Klepsydra.
+  * [Annex A](./tutorials/chapter1_annexA.md) covers how to pass a function as a parameter, paying special attention to different lambda function approaches.
 * [Chapter 2](./tutorials/chapter2.md) covers the ROS and DDS connection API.
 * [Chapter 3](./tutorials/chapter3.md) cover the code generator tool. It shows how to create a small application and build up to integrate with
 middlewares like ROS, ZMQ or DDS.
@@ -49,7 +50,7 @@ project, then the Klepsydra software must have been installed using the
 `-DKPSR_WITH_DDS=true` and `-DKPSR_WITH_ROS=true` arguments with cmake.
 
 ```bash
-sudo apt install build-essentials
+sudo apt install build-essential
 sudo apt install git
 sudo apt install cmake
 ```

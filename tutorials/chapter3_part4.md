@@ -6,6 +6,14 @@
 
 # Chapter 3. Part IV DDS connector
 
+## Table of contents
+* [Introduction](#introduction)
+* [Generating headers for messages](#generating-headers-for-messages)
+* [Klepsydra DDS API](#klepsydra-dds-api)
+* [The main file](#the-main-file)
+
+<a name="introduction"></a>
+## Introduction
 In this case, we treat the case where sensor messages are being
 broadcast using DDS and the middleware used is DDS. However, as we
 know that klepsydra's event loop is faster, we use it, without any
@@ -17,6 +25,7 @@ API we need to call.
 Unlike ROS, DDS does not need catkin, so it can be built normally with
 cmake and make.
 
+<a name="generating-headers-for-messages"></a>
 ## Generating headers for messages
 
 Similar to ROS, we need to generate message header files that will be
@@ -43,27 +52,31 @@ folder. The mapper classes allow the code to transform DDS
 objects/classes to pure C++ objects. Additionally, DDS specific
 headers are also generated and stored in the `dds/gen` folder.
 
+<a name="klepsydra-dds-api"></a>
 ## Klepsydra DDS API
 
 Similar to the ROS example, and example 3, we use the high performance
 event loop provider. The environment is defined for this example using
-the basic memory environment (`MenEnv`).
+the basic memory environment ([`MemEnv`](https://github.com/klepsydra-technologies/kpsr-core/blob/main/core/modules/mem_mdlw/include/klepsydra/mem_core/mem_env.h)).
 
-For registering subscribers, we use the `fromDDSProvider` class. This
+For registering subscribers, we use the [`FromDDSMiddlewareProvider`](https://github.com/klepsydra-technologies/kpsr-core/blob/main/core/modules/dds_mdlw/include/klepsydra/dds_core/from_dds_middleware_provider.h) class. This
 allows us to register a subscriber to read battery values and/or
 temperature values.
 
-The `toDDSProvider` allows us to declare a klepsydra publisher the
+The [`ToDDSMiddlewareProvider`](https://github.com/klepsydra-technologies/kpsr-core/blob/main/core/modules/dds_mdlw/include/klepsydra/dds_core/to_dds_middleware_provider.h) class allows us to declare a klepsydra publisher that
 publishes the status event data which can then be accessed from DDS.
 
 Using the event loop middleware provider, the subscribers and
 publishers are then passed to the control service class and the
 application service class.
 
+<a name="the-main-file"></a>
 ## The main file
 
 Finally, just as in the case of previous example, we write the
-rest of the code to simulate the sensor data.
+rest of the code to simulate the sensor data. The [`example_dds.cpp`](../examples/dds_mdlw/src/example_dds.cpp)
+provides the complete code.
+
 
 Note that in case of DDS, we need to define DDS Topic,
 DomainParticipant, Subscriber and Publisher as generally required by

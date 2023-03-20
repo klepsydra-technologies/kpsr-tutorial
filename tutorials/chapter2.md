@@ -1,6 +1,25 @@
-## Chapter 2
+<p align="right">
+  <img width="25%" height="25%"src="../images/klepsydra_logo.jpg">
+</p>
 
-### Introduction
+# Chapter 2
+
+## Table of contents
+* [Introduction](#introduction)
+* [ROS](#ros)
+    * [Example 1: The "Hello world!" example](#example-1)
+    * [Example 2: Reception of data](#example-2)
+    * [Example 3: A more complex example + Publishing with ROS types](#example-3)
+    * [Example 4: ROS Env](#example-4)
+* [DDS](#dds)
+    * [Sending / receiving data - the HelloWorld example](#dds-sending-receiving-data)
+    * [DDS Env](#dds-env)
+* [ZMQ](#zmq)
+    * [Hello World example](#zmq-hello-world-example)
+    * [ZMQ Env](#zmq-env)
+
+<a name="introduction"></a>
+## Introduction
 
 Klepsydra's API for DDS, ZMQ and ROS are part of the composition API presented in [chapter 1](chapter1.md). The functionality offered for each of these middlewares include:
 
@@ -15,13 +34,15 @@ The original goal of these three features of the middleware integration of Kleps
 
 This is the recommendation of several middleware providers including [ROS](http://wiki.ros.org/Quality/Tutorials/UnitTesting#line-85).
  
-### ROS
+<a name="ros"></a>
+## ROS
 
 To integrate Klepsydra with ROS, we provide three packages: `kpsr_ros_core`, `kpsr_ros_serialization` and `kpsr_ros_codegen`. These three packages are in the ros module of the folders `core`, `serialization` and `code_generation` in the kpsr-core repository. The functionality provided by the first two packages is demonstrated here while the functionality provided by `kpsr_ros_codegen` is explained in Chapter 3.
 
 The following examples show the Klepsydra - ROS connector.
 
-#### Example 1: The "Hello world!" example.
+<a name="example-1"></a>
+### Example 1: The "Hello world!" example
 
 Going back to the fist example in chapter1:
 
@@ -92,10 +113,11 @@ This examples shows several features of Klepsydra already. Let's have a look at 
 As ROS defines specific message types for different primitive data types in C++, we call template function with the template parameters being the primitive C++ object type and the associated ROS object type of the publisher.  The input parameters to the function are the topic name, the pool size and initializer function (in case the smart pool is to be used), and the original ROS publisher. Klepsydra has a mapper that allows for conversion between the two data types interchangeably.
 * We use the `kpsr::Publisher` obtained in the previous step to create a SimplePublisher instance. With this, we will now be able to publish to ROS topics using our middleware-agnostic class SimplePublisher.
 * Because of the internal mapper calls in the publisher obtained from `ToRosMiddlewareProvider`, the `std::string` message that is intended to be published by the SimplePublisher automatically gets converted to the `std_msgs::String` type.
-* This example shows publishing a simple (primitive) data type for which equivalent ROS types already exists. In case you want to publish more complex C++ data structures, Klepsydra provides a code generator which can generate appropriate ROS msg types along with mapper classes. This is covered in Chapter 3(TODO: add link) of the tutorial.
+* This example shows publishing a simple (primitive) data type for which equivalent ROS types already exists. In case you want to publish more complex C++ data structures, Klepsydra provides a code generator which can generate appropriate ROS msg types along with mapper classes. This is covered in [Chapter 3](chapter3.md) of the tutorial.
 * This example is like a typical ROS application. Thus, it must be compiled using `catkin`. 
 
-#### Example 2: Reception of data
+<a name="example-2"></a>
+### Example 2: Reception of data
 
 The following example shows how data coming from the middleware is placed in the eventloop. We will use the same publisher as in example 1.
 
@@ -166,7 +188,8 @@ Klepsydra uses it own event loop to replicate the message sent by the publisher 
 * As noted in the previous chapter, we must remove the listener before stopping the event loop.
 * The sleep calls are included because as this is a multi-threaded application, the sleep ensures that sufficient time is given to the function calls to terminate. If we don't give enough time to the removeListener call, the event loop may get blocked in its stop() call.
 
-#### Example 3: A more complex example + Publishing with ROS types
+<a name="example-3"></a>
+### Example 3: A more complex example + Publishing with ROS types
 
 The previous example is intended to show the most basic use, and thus might appear too counter-intuitive in demonstrating the usage of Klepsydra. As in the previous chapter, we show the example with vector data used in this case. In addition, we demonstrate another feature of using Klepsydra SDK with ROS - the ability to using existing ROS data types.
 
@@ -248,7 +271,8 @@ int main() {
 ```
 Examples 1, 2 and 3 thus demonstrate how Klepsydra can be used in two ways - by mapping simple ROS message types to simple POD types or by using existing ROS data types directly. The mapping function in either case is invisible to the application developer and is handled internally by the SDK.
 
-#### Example 4: ROS Env. 
+<a name="example-4"></a>
+### Example 4: ROS Env
 
 The ROS Env class is the Environment class built to function as the wrapper to the ROS parameter server. The ROSEnv allows us to access the parameters defined by the ROS parameter server. The following example shows how read data from a ROS middleware. 
 
@@ -278,12 +302,13 @@ int main(int argc, char **argv) {
 * The Environment class interface can be used to get and set values. When getting/setting a parameter, you must know the type of the parameter and use the relevant getter/setter. 
 * After running this example, you can verify that a new parameter `/paramFloat` exists with a value 1.5 using the `rosparam` command-line utility.
 
-
-### DDS
+<a name="dds"></a>
+## DDS
 
 When Klepsydra is compiled and installed with DDS support, three DDS specific libraries are installed: `kpsr_dds_serialization_datamodel`, `kpsr_dds_core` and `kpsr_dds_core_datamodel`, and are available to be linked against using the environment variable `KLEPSYDRA_DDS_LIBRARIES`. The `kpsr_dds_serialization` provides DDS compatible types for primitive data types. As DDS requires message data types to be specified in an *.idl file, Klepsydra provides the primitive data types in wrapped formats which also include the sequence number field. The `kpsr_dds_serialization` also provides mapping functions to conveniently transform data from the primitive type to the dds specific type. 
 
-#### Sending / receiving data - the HelloWorld example:
+<a name="dds-sending-receiving-data"></a>
+### Sending / receiving data - the HelloWorld example
 
 The HelloWorld example for DDS can then use the same SimplePublisher class as shown for ROS and the complete example would be as shown below:
 
@@ -331,15 +356,18 @@ int main(int argc, char **argv) {
 * Next, we attach the listener callback to the subscriber obtained from the event loop. With this, the klepsydra set up is done.
 As you can see from the code, the application we intended (publish "Hello World") remained unaffected by the middleware type. The class used in the ROS example was reused in the DDS example and the Klepsydra API allowed us to easily use it with DDS. Additionally, since the event loop used is the same (whether in ROS or DDS), we get the same advantages of the high performance API.
 
-#### DDS Env
+<a name="dds-env"></a>
+### DDS Env
 
 The ```kpsr::dds_mdlw::DDSEnv``` class is the Environment class built to share and access global data parameters over the DDS distributed environment. The Environment class defines the interface used by the ```kpsr::dds_mdlw::DDSEnv``` to access the parameters. These parameters are loaded from a YAML file into a YamlEnvironment class, and are made available to the DDS environment via a specific pair of DDS Reader/Writers. As a result, these parameters are accessible over the entire DDS environment, and any changes to these parameters are also visible to Klepsydra applications.
 
-### ZMQ
+<a name="zmq"></a>
+## ZMQ
 
 Klepsydra compiled with ZMQ support generates the `kpsr_zmq_core` library which is available to be linked by applications. In order to send or receive data using ZMQ, Klepsydra provides three ways of serializing data - JSON encoding, binary encoding, or raw data. When dealing with primitive data types, no additional steps are required and we show below how the previous simple example would be used.
 
-#### Hello World example
+<a name="zmq-hello-world-example"></a>
+### Hello World example
 
 ```cpp
 
@@ -410,7 +438,7 @@ The subscriber factory in the ZMQ case is always the ```kpsr::zmq_mdlw::FromZmqM
 * Finally, we register the required callback listener to the subscriber provided by the event loop and run the example.
 * The final four lines provide us the steps required to stop Klepsydra objects safely.
 
-
-#### ZMQ Env
+<a name="zmq-env"></a>
+### ZMQ Env
 
 The ```kpsr::zmq_mdlw::ZMQEnv``` is similar to the ```kpsr::dds_mdlw::DDSEnv``` in that it is a wrapper to the ```kpsr::YamlEnvironment``` class that holds the configuration for the environment (or global data parameters to be shared over the ZMQ network), along with an ability to share this data over the network. It functions similarly, allowing reading global parameters and writing to them too. The changes to the parameters are visible immediately to all Klepsydra applications that are on the ZMQ network. As it inherits from the ```kpsr::Environment``` class, the interface is the same as DDS or ROS.

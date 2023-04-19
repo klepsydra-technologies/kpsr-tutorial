@@ -88,6 +88,7 @@ target_link_libraries(${PROJ_NAME}_7 PUBLIC ${KLEPSYDRA_CORE_LIBRARIES})
 # Add subdirectories
 # ------------------------------------------------------------------------------------------------------
 add_subdirectory(annexA)
+add_subdirectory(annexB)
 
 # Example unit tests Source
 # ---------------------------------------------------#

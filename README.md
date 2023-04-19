@@ -7,11 +7,14 @@
 Public tutorial for using Klepsydra API. It consists of three chapters:
 
 * [Chapter 1](./tutorials/chapter1.md) covers the core API of Klepsydra.
-  * [Annex A](./tutorials/chapter1_annexA.md) covers how to pass a function as a parameter, paying special attention to different lambda function approaches.
-* [Chapter 2](./tutorials/chapter2.md) covers the ROS and DDS connection API.
+    * [Annex A](./tutorials/chapter1_annexA.md) covers how to pass a function as a parameter, paying special attention to different lambda function approaches.
+    * [Annex B](./tutorials/chapter1_annexB.md) covers publisher and subscriber arguments.
+* [Chapter 2](./tutorials/chapter2.md) covers the ROS and DDS[^1] connection API.
 * [Chapter 3](./tutorials/chapter3.md) cover the code generator tool. It shows how to create a small application and build up to integrate with
 middlewares like ROS, ZMQ or DDS.
 * [Chapter 4](./tutorials/chapter4.md) covers the state machine.
+
+[^1]: DDS and YAML are no longer supported. Please, download `kpsr-core` up to [v7.8.0](https://github.com/klepsydra-technologies/kpsr-core/tree/v7.8.0) to test DDS and/or YAML functionality.
 
 Each chapter has its corresponding code in the [examples](./examples) folder. Note, chapter 3 examples for basic code generator are in the core [examples/core](./examples/core) folder while the location of middleware specific examples is noted in the respective tutorial sections.
 
@@ -20,11 +23,11 @@ Each chapter has its corresponding code in the [examples](./examples) folder. No
 ## System dependencies
 
 * Ubuntu 18.04 or above
-* Google Tests (<https://github.com/klepsydra-technologies/googletest>)
 * ROS Indigo or above (optional)
-* DDS (optional)
-* Cmake 3.5.1 or above
-* gcc for C++11 5.4.0 or above.
+* DDS (optional[^1])
+* CMake 3.5.1 or above
+* gcc for C++11 5.4.0 or above
+* Google Tests (<https://github.com/klepsydra-technologies/googletest>)
 
 Note that Google Tests is pulled in automatically when installing this project and does not need separate installation.
 
@@ -38,24 +41,21 @@ No separate installation is needed for the following dependencies if the Klepsyd
 
 ## Klepsydra dependencies
 
-* kpsr-core (installed with yaml support)
-* kpsr-build (<https://github.com/klepsydra-technologies/kpsr-build>)
+* [kpsr-core](https://github.com/klepsydra-technologies/kpsr-core) (installed with YAML[^1] support)
 
-kpsr-build will be pulled in automatically by the install process of this project.
+`kpsr-build` will be pulled in automatically by the install process of this project.
 
 ### Installation
 
-If you wish to follow the DDS and ROS examples in this
+If you wish to follow the DDS[^1] and ROS examples in this
 project, then the Klepsydra software must have been installed using the
 `-DKPSR_WITH_DDS=true` and `-DKPSR_WITH_ROS=true` arguments with cmake.
 
 ```bash
-sudo apt install build-essential
-sudo apt install git
-sudo apt install cmake
+sudo apt install build-essential git cmake
 ```
 
-Given ```$KLEPSYDRA_HOME```, for example ```$HOME/klepsydra```:
+Given `$KLEPSYDRA_HOME`, for example `$HOME/klepsydra`:
 
 ```bash
 cd $KLEPSYDRA_HOME
@@ -71,8 +71,11 @@ make test
 
 The cmake has the following options:
 
-* -DKPSR_INSTALL_PATH to specify where kpsr-tutorial binaries should be installed (/opt/klepsydra by default)
-* -DKPSR_WITH_DDS for building the DDS version of the tutorial.
+* -DCMAKE_PREFIX_PATH Klepsydra SDK installation location (`/usr/local` by default), same as -DCMAKE_INSTALL_PREFIX when building kpsr-core
+* -DKPSR_INSTALL_PATH to specify where kpsr-tutorial binaries should be installed (`/opt/klepsydra` by default)
+* -DKPSR_WITH_DDS for building the DDS version of the tutorial
+
+The examples binaries, such as `kpsr_tutorial_chapter1_1`, are located at `build/bin/`
 
 ### Install process for ROS Examples
 
@@ -81,6 +84,8 @@ For compiling ROS examples, we further need to install the kpsr-tutorial module.
 ```bash
 make install
 ```
+
+If the default value of `CMAKE_INSTALL_PREFIX` or `KPSR_INSTALL_PATH` is used, then `sudo` may be necessary.
 
 Next, make a symlink in your ROS catkin workspace to point to  the ROS subfolder of this project.
 

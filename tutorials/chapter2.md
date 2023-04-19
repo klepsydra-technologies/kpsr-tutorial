@@ -21,7 +21,9 @@
 <a name="introduction"></a>
 ## Introduction
 
-Klepsydra's API for DDS, ZMQ and ROS are part of the composition API presented in [chapter 1](chapter1.md). The functionality offered for each of these middlewares include:
+Klepsydra's API for DDS[^1], ZMQ and ROS are part of the composition API presented in [chapter 1](chapter1.md). The functionality offered for each of these middlewares include:
+
+[^1]: DDS and YAML are no longer supported. Please, download `kpsr-core` up to [v7.8.0](https://github.com/klepsydra-technologies/kpsr-core/tree/v7.8.0) to test DDS and/or YAML functionality.
 
 * **Publication to Middleware**. Fulfilling the ```kpsr::Publisher``` API, Klepsydra offers an efficient way to publish to the middleware.
 * **Subscription from Middleware**. The most powerful element of Klepsydra is the reception of incoming data from the middleware and passing it to the application. The associated API is explained in detail in this chapter.
@@ -33,7 +35,7 @@ The original goal of these three features of the middleware integration of Kleps
 * Develop unit tests and integrations tests agnostic of the underlying middleware.
 
 This is the recommendation of several middleware providers including [ROS](http://wiki.ros.org/Quality/Tutorials/UnitTesting#line-85).
- 
+
 <a name="ros"></a>
 ## ROS
 
@@ -55,7 +57,7 @@ public:
    SimplePublisher(kpsr::Publisher<std::string> * publisher)
       : _publisher(publisher)
    {}
-   
+
    void run() {
       _publisher->publish("Hello World!");
       std::cout << "SimplePublisherClass (publisher) thread ID: " << std::this_thread::get_id() << std::endl;
@@ -94,9 +96,9 @@ int main(int argc, char ** argv) {
 
    kpsr::Publisher<std::string> * kpsrPublisher = toRosProvider.getToMiddlewareChannel<std::string, std_msgs::String>(topicName, 1, nullptr, stringPublisher);
    SimplePublisher publisher(kpsrPublisher);
-   
+
    simplePublisher.run();
-   
+
    ros::SpinOnce();
 }
 ```
@@ -104,8 +106,8 @@ int main(int argc, char ** argv) {
 This examples shows several features of Klepsydra already. Let's have a look at them line by line:
 
 * The first five lines in `main` are standard lines in a ROS application to set up the node and define a publisher/subscriber pair.
-* The `kpsr::ros_mdlw::ToRosMiddlewareProvider` is the base factory to associate the ROS middleware publisher to a Klepysydra publisher. 
-* The associated Klepsydra publisher is obtained by calling the class template function `getToMiddlewareChannel`. 
+* The `kpsr::ros_mdlw::ToRosMiddlewareProvider` is the base factory to associate the ROS middleware publisher to a Klepysydra publisher.
+* The associated Klepsydra publisher is obtained by calling the class template function `getToMiddlewareChannel`.
 ```cpp
    kpsr::Publisher * kpsrPublisher = toRosProvider.getToMiddlewareChannel<std::string, std_msgs::String>(topicName, 1, nullptr, stringPublisher);
 
@@ -114,7 +116,7 @@ As ROS defines specific message types for different primitive data types in C++,
 * We use the `kpsr::Publisher` obtained in the previous step to create a SimplePublisher instance. With this, we will now be able to publish to ROS topics using our middleware-agnostic class SimplePublisher.
 * Because of the internal mapper calls in the publisher obtained from `ToRosMiddlewareProvider`, the `std::string` message that is intended to be published by the SimplePublisher automatically gets converted to the `std_msgs::String` type.
 * This example shows publishing a simple (primitive) data type for which equivalent ROS types already exists. In case you want to publish more complex C++ data structures, Klepsydra provides a code generator which can generate appropriate ROS msg types along with mapper classes. This is covered in [Chapter 3](chapter3.md) of the tutorial.
-* This example is like a typical ROS application. Thus, it must be compiled using `catkin`. 
+* This example is like a typical ROS application. Thus, it must be compiled using `catkin`.
 
 <a name="example-2"></a>
 ### Example 2: Reception of data
@@ -139,22 +141,22 @@ int main(int argc, char ** argv) {
 
    kpsr::ros_mdlw::FromRosMiddlewareProvider fromRosProvider(nodeHandle);
    kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
-   
+
    fromRosProvider.registerToTopic<std::string, std_msgs::String>(topicName.c_str(), 1, eventLoop.getPublisher<std::string>(topicName, 0, nullptr, nullptr));
-   
+
    eventloop.getSubscriber<std::string>(topicName)->registerListener("example2", [](const std::string & message) {
          std::cout << "Message received: " << message << std::endl;
          std::cout << "Eventloop (subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
       }
    );
-   
+
    eventloop.start();
    stringPublisher.publish("Hello World!");
    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-   
+
    ros::SpinOnce();
    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-   
+
    eventloop.getSubscriber<std::string>(topicName)->removeListener("example2");
    std::this_thread::sleep_for(std::chrono::milliseconds(10));
    eventloop.stop();
@@ -167,7 +169,7 @@ Let's look at the lines in the main function:
 ```cpp
    kpsr::ros_mdlw::FromRosMiddlewareProvider fromRosProvider(nodeHandle);
 ```
-* The FromRosMiddlewareProvider provides an API to create a connector to the ROS middleware. 
+* The FromRosMiddlewareProvider provides an API to create a connector to the ROS middleware.
 ```cpp
    fromRosProvider.registerToTopic<std::string, std_msgs::String>(topicName.c_str(), 1, eventLoop.getPublisher<std::string>(topicName, 0, nullptr, nullptr));
 ```
@@ -222,7 +224,7 @@ int main() {
    // Set up the klepsydra class to publish ROS vectors.
    auto vectorPublisher = toRosProvider.getToMiddlewareChannel<std_msgs::Float32MultiArray, std_msgs::Float32MultiArray>(
        "vector", 10, nullptr, rosVectorPublisher);
-      
+
    // Declare the ROS publisher that will publish the vector sum
    std::string vectorSum("VectorSum");
    ros::Publisher rosPublisher = nodeHandle.advertise<std_msgs::Float32>(vectorSum, 1);
@@ -233,7 +235,7 @@ int main() {
    // Register ROS subscriber for the ROS vector.
    fromRosProvider.registerToTopic<std_msgs::Float32MultiArray, std_msgs::Float32MultiArray>(
        "vector", 10, eventloop.getPublisher<std_msgs::Float32MultiArray>("vector", 10, nullptr, nullptr));
-   
+
    {
       SumVectorData sumVectorData(eventloop.getSubscriber<std_msgs::Float32MultiArray>("vector"),
                                     sumPublisher);
@@ -249,7 +251,7 @@ int main() {
       std::thread t([&vectorPublisher]() {
                           std_msgs::Float32MultiArray msg;
                           int const vectorLength(10);
-                          msg.layout.dim.push_back(std_msgs::MultiArrayDimension());  
+                          msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
                           msg.layout.dim[0].size = vectorLength;
                           msg.layout.dim[0].stride = 1;
                           for (int i = 0; i < 100; i ++) {
@@ -274,7 +276,7 @@ Examples 1, 2 and 3 thus demonstrate how Klepsydra can be used in two ways - by 
 <a name="example-4"></a>
 ### Example 4: ROS Env
 
-The ROS Env class is the Environment class built to function as the wrapper to the ROS parameter server. The ROSEnv allows us to access the parameters defined by the ROS parameter server. The following example shows how read data from a ROS middleware. 
+The ROS Env class is the Environment class built to function as the wrapper to the ROS parameter server. The ROSEnv allows us to access the parameters defined by the ROS parameter server. The following example shows how read data from a ROS middleware.
 
 ```cpp
 #include <kpsr_ros_core/ros_env.h>
@@ -292,20 +294,20 @@ int main(int argc, char **argv) {
 
    float paramFloat(1.5f);
    environment.setPropertyFloat("paramFloat", paramFloat);
-   
+
    return 0;
 }
 
 ```
 * This example shows usage of the ros environment with default parameters that always exist and show how a new parameter can be set.
-* The ROS Env is constructed using the pointer to the NodeHandle as the only required input parameter. The rest of the code is straightforward. 
-* The Environment class interface can be used to get and set values. When getting/setting a parameter, you must know the type of the parameter and use the relevant getter/setter. 
+* The ROS Env is constructed using the pointer to the NodeHandle as the only required input parameter. The rest of the code is straightforward.
+* The Environment class interface can be used to get and set values. When getting/setting a parameter, you must know the type of the parameter and use the relevant getter/setter.
 * After running this example, you can verify that a new parameter `/paramFloat` exists with a value 1.5 using the `rosparam` command-line utility.
 
 <a name="dds"></a>
 ## DDS
 
-When Klepsydra is compiled and installed with DDS support, three DDS specific libraries are installed: `kpsr_dds_serialization_datamodel`, `kpsr_dds_core` and `kpsr_dds_core_datamodel`, and are available to be linked against using the environment variable `KLEPSYDRA_DDS_LIBRARIES`. The `kpsr_dds_serialization` provides DDS compatible types for primitive data types. As DDS requires message data types to be specified in an *.idl file, Klepsydra provides the primitive data types in wrapped formats which also include the sequence number field. The `kpsr_dds_serialization` also provides mapping functions to conveniently transform data from the primitive type to the dds specific type. 
+When Klepsydra is compiled and installed with DDS support[^1], three DDS specific libraries are installed: `kpsr_dds_serialization_datamodel`, `kpsr_dds_core` and `kpsr_dds_core_datamodel`, and are available to be linked against using the environment variable `KLEPSYDRA_DDS_LIBRARIES`. The `kpsr_dds_serialization` provides DDS compatible types for primitive data types. As DDS requires message data types to be specified in an *.idl file, Klepsydra provides the primitive data types in wrapped formats which also include the sequence number field. The `kpsr_dds_serialization` also provides mapping functions to conveniently transform data from the primitive type to the dds specific type.
 
 <a name="dds-sending-receiving-data"></a>
 ### Sending / receiving data - the HelloWorld example
@@ -359,7 +361,7 @@ As you can see from the code, the application we intended (publish "Hello World"
 <a name="dds-env"></a>
 ### DDS Env
 
-The ```kpsr::dds_mdlw::DDSEnv``` class is the Environment class built to share and access global data parameters over the DDS distributed environment. The Environment class defines the interface used by the ```kpsr::dds_mdlw::DDSEnv``` to access the parameters. These parameters are loaded from a YAML file into a YamlEnvironment class, and are made available to the DDS environment via a specific pair of DDS Reader/Writers. As a result, these parameters are accessible over the entire DDS environment, and any changes to these parameters are also visible to Klepsydra applications.
+The ```kpsr::dds_mdlw::DDSEnv``` class is the Environment class built to share and access global data parameters over the DDS distributed environment. The Environment class defines the interface used by the ```kpsr::dds_mdlw::DDSEnv``` to access the parameters. These parameters are loaded from a YAML[^1] file into a YamlEnvironment class, and are made available to the DDS environment via a specific pair of DDS Reader/Writers. As a result, these parameters are accessible over the entire DDS environment, and any changes to these parameters are also visible to Klepsydra applications.
 
 <a name="zmq"></a>
 ## ZMQ
@@ -388,14 +390,14 @@ int main (int argv, char ** argc) {
 
     kpsr::zmq_mdlw::ToZMQMiddlewareProvider toZMQMiddlewareProvider(nullptr, publisher);
     kpsr::Publisher<std::string> * toZMQPublisher = toZMQMiddlewareProvider.getJsonToMiddlewareChannel<std::string>(topic, 0);
-    
+
     SimplePublisher publisher(toZMQPublisher);
-    
+
     //  Process 100 updates
     kpsr::zmq_mdlw::FromZmqMiddlewareProvider _fromZmqMiddlewareProvider;
     kpsr::zmq_mdlw::FromZmqChannel<std::string> * _jsonFromZMQProvider = _fromZmqMiddlewareProvider.getJsonFromMiddlewareChannel<std::string>(subscriber, 100);
     _jsonFromZMQProvider->start();
-    
+
     kpsr::high_performance::EventLoopMiddlewareProvider<16> stringDataSafeQueueProvider(nullptr);
     stringDataSafeQueueProvider.start();
 

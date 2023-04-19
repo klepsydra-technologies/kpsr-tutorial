@@ -15,12 +15,14 @@
 <a name="introduction"></a>
 ## Introduction
 In this case, we treat the case where sensor messages are being
-broadcast using DDS and the middleware used is DDS. However, as we
+broadcast using DDS[^1] and the middleware used is DDS. However, as we
 know that klepsydra's event loop is faster, we use it, without any
 changes to the service classes, to control the cubesat. In this case,
 the overall code in the main file still retains the same structure as
 the other examples. We list below what steps differ and what different
 API we need to call.
+
+[^1]: DDS and YAML are no longer supported. Please, download `kpsr-core` up to [v7.8.0](https://github.com/klepsydra-technologies/kpsr-core/tree/v7.8.0) to test DDS and/or YAML functionality.
 
 Unlike ROS, DDS does not need catkin, so it can be built normally with
 cmake and make.
@@ -29,7 +31,7 @@ cmake and make.
 ## Generating headers for messages
 
 Similar to ROS, we need to generate message header files that will be
-used by the code. The existing YAML files contain fields related to
+used by the code. The existing YAML[^1] files contain fields related to
 DDS middleware which are only used by the code-generator if specify
 that DDS should not be disabled. The default CMakeLists handles this
 by checking if the variable `KPSR_WITH_DDS` is set to true. Thus, the
@@ -56,7 +58,7 @@ headers are also generated and stored in the `dds/gen` folder.
 ## Klepsydra DDS API
 
 Similar to the ROS example, and example 3, we use the high performance
-event loop provider. The environment is defined for this example using
+event loop provider[^1]. The environment is defined for this example using
 the basic memory environment ([`MemEnv`](https://github.com/klepsydra-technologies/kpsr-core/blob/main/core/modules/mem_mdlw/include/klepsydra/mem_core/mem_env.h)).
 
 For registering subscribers, we use the [`FromDDSMiddlewareProvider`](https://github.com/klepsydra-technologies/kpsr-core/blob/main/core/modules/dds_mdlw/include/klepsydra/dds_core/from_dds_middleware_provider.h) class. This

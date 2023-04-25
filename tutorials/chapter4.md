@@ -10,7 +10,7 @@
 * [Introduction](#introduction)
 * [Components](#components)
 * [Example 1: A simple state machine](#example-1)
-    * [Example 1a: State Machine with YAML configuration](#example-1a)
+    * [Example 1a: State Machine with JSON configuration](#example-1a)
 * [Example 2: Multiple observers](#example-2)
 * [Example 3: Enqueing multiple events](#example-3)
     * [Example 3a: Multiple enqueued events and threads](#example-3a)
@@ -21,13 +21,13 @@
 ## Pre-requisites
 
 * Medium level of C++ and basic understanding of C++11 [share pointers](https://en.cppreference.com/w/cpp/memory/shared_ptr) and [lambda functions](https://en.cppreference.com/w/cpp/language/lambda).
-* Basic knowledge of [CMAKE](https://cmake.org/)
-* Understanding of YAML and JSON formats
+* Basic knowledge of [CMAKE](https://cmake.org/).
+* Understanding of JSON format.
 
 <a name="technical-requirements"></a>
 ## Technical requirements
 
-Installation of Klepsydra Core with YAML support.
+Installation of [Klepsydra Core](https://github.com/klepsydra-technologies/kpsr-core/).
 
 <a name="introduction"></a>
 ## Introduction
@@ -40,16 +40,16 @@ Klepsydra Core includes a State Machine. It has been developed so that it can be
 The State Machine modules defines the following classes for use:
 
  - [`Transition`](https://github.com/klepsydra-technologies/kpsr-core/blob/main/state_machine/modules/state_machine/include/klepsydra/state_machine/transition.h):  Provides a destination `state id` and an `event` that triggers the transition
- - [`State`](https://github.com/klepsydra-technologies/kpsr-core/blob/main/state_machine/modules/state_machine/include/klepsydra/state_machine/state.h): For a given `state id` defines a series of allowed transitions
+ - [`State`](https://github.com/klepsydra-technologies/kpsr-core/blob/main/state_machine/modules/state_machine/include/klepsydra/state_machine/state.h): For a given `state id` defines a series of allowed transitions. By definition, the initial state is the first one.
  - [`StateMachine`](https://github.com/klepsydra-technologies/kpsr-core/blob/main/state_machine/modules/state_machine/include/klepsydra/state_machine/state_machine.h):
-    - Allows the user to register Observer Functions. Observer Functions are functions which take in the current state and whether the state has changed or not, and run some user defined action. 
+    - Allows the user to register Observer Functions. Observer Functions are functions which take in the current state and whether the state has changed or not, and run some user defined action.
     - Holds events and allows to enqueue new events. Events can trigger transitions to different states.
     - update(): Processes queued events and updates the state if a transition is permitted. This function calls all registered observers.
- - [`StateMachineFactory`](https://github.com/klepsydra-technologies/kpsr-core/blob/main/state_machine/modules/state_machine/include/klepsydra/state_machine/state_machine_factory.h): A factory for creating a state machine. 
+ - [`StateMachineFactory`](https://github.com/klepsydra-technologies/kpsr-core/blob/main/state_machine/modules/state_machine/include/klepsydra/state_machine/state_machine_factory.h): A factory for creating a state machine.
  - [`ConfigStateMachine`, `ConfigState` and `ConfigTransition`](https://github.com/klepsydra-technologies/kpsr-core/blob/main/state_machine/modules/state_machine/include/klepsydra/state_machine/config_state_machine.h): Simple data classes to help define the state machine, state and transitions. A `ConfigStateMachine` class can be passed to the state machine factory to create a state machine programmatically.
  - [`StateMachineListener`](https://github.com/klepsydra-technologies/kpsr-core/blob/main/state_machine/modules/state_machine/include/klepsydra/state_machine/state_machine_listener.h): A utility class to allow adding actions, one-off actions and periodic actions which are run if the current state of the state machine has changed to a specific state. Provides an observer function that can be registered to the state machine.
-    
-For convenience, we provide support for defining a state machine with a YAML file. The YAML file can be passed to the StateMachineFactory to create a state machine.
+
+For convenience, we provide support for defining a state machine with a JSON file. The JSON file can be passed to the StateMachineFactory to create a state machine.
 
 <a name="example-1"></a>
 ## Example 1: A simple state machine
@@ -117,47 +117,61 @@ This code shows the creation of a simple state machine using the factory impleme
 The `stateMachine` variable is a shared_ptr to the StateMachine, created by the factory.
 
 <a name="example-1a"></a>
-### Example 1a: State Machine with YAML configuration
+### Example 1a: State Machine with JSON configuration
 
-The above state machine can also be defined in a YAML file and the configuration can be loaded directly from the file, rather than creating the machine programmatically. We present here the basic example for illustrative purposes. However, all the following examples define the *same* machine programmatically.
+The above state machine can also be defined in a JSON file and the configuration can be loaded directly from the file, rather than creating the machine programmatically. We present here the basic example for illustrative purposes. However, all the following examples define the *same* machine programmatically.
 
-The above state machine can be represented in a YAML structure as below:
-```yaml
-state_machine:
-  id: "exampleStateMachine"
-  states:
-  - state: # the first state is always the initial state
-      id: "st1"
-      transitions:
-        - transition:
-            destination: "st2"
-            event: "event1"
-        - transition:
-            destination: "st3"
-            event: "event2"
-  - state:
-      id: "st2" 
-      transitions:
-        - transition:
-            destination: "st1"
-            event: "event3"
-  - state:
-      id: "st3" 
-      transitions:
-        - transition:
-            destination: "st2"
-            event: "event1"
+The above state machine can be represented in a JSON structure as below:
+
+```JSON
+{
+    "id": "sm1",
+    "states": [
+        {
+            "id": "st1",
+            "transitions": [
+                {
+                    "destination": "st2",
+                    "event": "event1"
+                },
+                {
+                    "destination": "st3",
+                    "event": "event2"
+                }
+            ]
+        },
+        {
+            "id": "st2",
+            "transitions": [
+                {
+                    "destination": "st1",
+                    "event": "event3"
+                }
+            ]
+        },
+        {
+            "id": "st3",
+            "transitions": [
+                {
+                    "destination": "st2",
+                    "event": "event1"
+                }
+            ]
+        }
+    ]
+}
 ```
-The only change then to the example 1 would then be adding the following include:
+
+[Example 1a](../examples/chapter4/src/example1a.cpp), compared with [example 1](../examples/chapter4/src/example1.cpp), requires a header:
 
 ```cpp
-#include <klepsydra/state_machine/yaml_config_loader.h>
+#include <klepsydra/state_machine/kpsr_state_machine.h>
 ```
 
-And then the ConfigStateMachine can then be loaded directly from the file as :
+But the code can be simplified to:
+
 ```cpp
-    kpsr::fsm::YamlConfigLoader configLoader;
-    kpsr::fsm::ConfigStateMachine configStateMachine = configLoader.loadConfig(TEST_DATA "/sm1.yaml");
+auto stateMachine = kpsr::fsm::FromJson::createStateMachine(TEST_DATA "/sm1.json");
 ```
 
 <a name="example-2"></a>

@@ -46,7 +46,7 @@ jobs:
       - name: Build and install kpsr-core
         run: |
           mkdir build && cd build
-          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=true -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} ../ 
+          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} ../
           make -j$(nproc)
           make install
         working-directory: kpsr-core
@@ -111,7 +111,7 @@ jobs:
       - name: Install kpsr-core
         run: |
           mkdir -p build && cd build
-          cmake -DKPSR_WITH_DOXYGEN=false -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=false -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=true -DKPSR_WITH_CODE_METRICS=false -DCMAKE_BUILD_TYPE=Release ../
+          cmake -DKPSR_WITH_DOXYGEN=false -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=false -DKPSR_WITH_SOCKET=true -DKPSR_WITH_CODE_METRICS=false -DCMAKE_BUILD_TYPE=Release ../
           make -j$(nproc)
           sudo make -j$(nproc) install
         working-directory: kpsr-core

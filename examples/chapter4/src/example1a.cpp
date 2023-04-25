@@ -14,9 +14,7 @@
 
 #include <iostream>
 
-#include <klepsydra/state_machine/sm_factory_impl.h>
-#include <klepsydra/state_machine/state_machine_factory.h>
-#include <klepsydra/state_machine/yaml_config_loader.h>
+#include <klepsydra/state_machine/kpsr_state_machine.h>
 
 struct Observer
 {
@@ -33,14 +31,11 @@ struct Observer
         this->_currentState = currentState;
     }
 };
+
 int main()
 {
-    kpsr::fsm::YamlConfigLoader configLoader;
-    kpsr::fsm::ConfigStateMachine configStateMachine = configLoader.loadConfig(TEST_DATA
-                                                                               "/sm1.yaml");
+    auto stateMachine = kpsr::fsm::FromJson::createStateMachine(TEST_DATA "/sm1.json");
 
-    kpsr::fsm::SMFactoryImpl smFactory;
-    auto stateMachine = smFactory.createStateMachine(configStateMachine);
     Observer smObserver;
     stateMachine->registerObserver(std::bind(&Observer::updateCurrentState,
                                              smObserver,

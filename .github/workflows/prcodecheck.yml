@@ -33,26 +33,13 @@ jobs:
     container:
       image: ghcr.io/klepsydra-technologies/kpsrbase:1.0.0
     steps:
-      - name: Clone kpsr-core
-        uses: actions/checkout@v3
-        with:
-          repository: klepsydra-technologies/kpsr-core
-          ref: main
-          submodules: recursive
-          path: kpsr-core
-
-      - name: Build and install kpsr-core
-        run: |
-          mkdir build && cd build 
-          cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=true -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug ../ 
-          make -j$(nproc)
-          sudo make install
-        working-directory: kpsr-core
-
       - name: Clone project
         uses: actions/checkout@v3
         with:
           submodules: recursive
+
+      - name: Install Dependencies
+        uses: ./.github/actions/deps/
 
       - name: Code format check
         run: |

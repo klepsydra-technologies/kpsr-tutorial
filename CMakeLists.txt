@@ -65,9 +65,9 @@ include(GNUInstallDirs)
 # Build type
 SET(BUILD_SHARED_LIBS "ON" FORCE)
 
-find_package(Klepsydra 7 REQUIRED)
+find_package(Klepsydra 8 REQUIRED)
 
-include(${KLEPSYDRA_CODE_GENERATOR})
+include(KpsrCodeGen)
 # Generate header files for messages/yaml files before compiling any code
 set(DDS_CODEGEN "True")
 if(KPSR_WITH_DDS)

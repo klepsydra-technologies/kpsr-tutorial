@@ -1,0 +1,38 @@
+name: 'Install Dependencies'
+description: 'Install dependencies'
+runs:
+  using: "composite"
+
+  steps:
+    - name: Clone kpsr-core
+      uses: actions/checkout@v3
+      with:
+        repository: klepsydra-technologies/kpsr-core
+        ref: main
+        submodules: recursive
+        path: kpsr-core
+
+    - name: Build and install kpsr-core
+      shell: bash
+      run: |
+        mkdir build && cd build 
+        cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_DDS=false -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=true -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug ../ 
+        make -j$(nproc)
+        sudo make install
+      working-directory: kpsr-core
+
+    - name: Clone kpsr-codegen
+      uses: actions/checkout@v3
+      with:
+        repository: klepsydra-technologies/kpsr-codegen
+        ref: main
+        submodules: recursive
+        path: kpsr-codegen
+
+    - name: Build and install kpsr-codegen
+      shell: bash
+      run: |
+        pip3 install build
+        python3 -m build --outdir dist
+        pip3 install dist/kpsr_codegen-1.0-py3-none-any.whl
+      working-directory: kpsr-codegen

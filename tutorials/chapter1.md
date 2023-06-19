@@ -35,14 +35,10 @@
 * Although not required beforehand, there will be use of [YAML language](https://yaml.org/)[^1].
 * Klepsydra recommends the use of the [composition root](https://medium.com/@cfryerdev/dependency-injection-composition-root-418a1bb19130) and [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection) patterns. These two concepts appear repeatedly throughout this tutorial.
 
-[^1]: DDS and YAML are no longer supported. Please, download `kpsr-core` up to [v7.8.0](https://github.com/klepsydra-technologies/kpsr-core/tree/v7.8.0) to test DDS and/or YAML functionality.
-
-For the ROS tutorial, basic knowledge of ROS is required and similarly for the DDS[^1] tutorial, RTI DDS understanding is required.
-
 <a name="technical-requirements"></a>
 ## Technical requirements
 
-Installation of Klepsydra Core, optionally ROS, DDS[^1].
+Installation of Klepsydra Core, optionally ROS.
 
 Klepsydra is installed (by default) to /usr/local by CMake. To develop an application using Klepsydra use the cmake command `find_package(Klepsydra)` in the CMakeLists file. With this command, the Klepsydra includes are available in the variable `KLEPSYDRA_INCLUDE_DIRS` and the libraries are available using the variable `KLEPSYDRA_CORE_LIBRARIES`. The CMakeLists file provided for compiling the examples in the tutorial demonstrate how these two variables are used.
 

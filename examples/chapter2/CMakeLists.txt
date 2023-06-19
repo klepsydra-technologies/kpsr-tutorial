@@ -12,11 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-IF(KPSR_WITH_DDS)
-  add_subdirectory(dds_examples)
-ENDIF()
-
 IF(KPSR_WITH_ZMQ)
   add_subdirectory(zmq_examples)
 ENDIF()

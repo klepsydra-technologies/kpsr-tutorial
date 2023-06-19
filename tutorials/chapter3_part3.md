@@ -135,6 +135,3 @@ The executable will be generated in the `devel/lib/` folder and can be
 run directly. (Note, the example expects a valid ROS master running on
 the network. You can easily start it by typing `roscore` in a new
 shell.)
-
-[Next Tutorial: DDS connector](./chapter3_part4.md)
-

@@ -14,10 +14,6 @@
 
 class_name: kpsr::sensors::Temperature
 middlewares:
-    - type: DDS
-      class_name: kpsr_dds_sensors::Temperature
-      sequence_fields:
-          - seq
     - type: ROS
       project_name: sensor_msgs
       class_name: Temperature

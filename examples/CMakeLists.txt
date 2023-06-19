@@ -18,7 +18,3 @@ add_subdirectory(core)
 add_subdirectory(chapter1)
 add_subdirectory(chapter2)
 add_subdirectory(chapter4)
-IF(KPSR_WITH_DDS)
-  add_subdirectory(dds_mdlw)
-ENDIF()
-

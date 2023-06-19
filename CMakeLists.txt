@@ -68,12 +68,7 @@ SET(BUILD_SHARED_LIBS "ON" FORCE)
 find_package(Klepsydra 8 REQUIRED)
 
 include(KpsrCodeGen)
-# Generate header files for messages/yaml files before compiling any code
-set(DDS_CODEGEN "True")
-if(KPSR_WITH_DDS)
-set(DDS_CODEGEN "False")
-endif()
-KpsrEventGenerator("${CMAKE_CURRENT_SOURCE_DIR}/kidl" "${CMAKE_CURRENT_SOURCE_DIR}/gen" "klepsydra/tutorial" "False" "True" "${DDS_CODEGEN}")
+KpsrEventGenerator("${CMAKE_CURRENT_SOURCE_DIR}/kidl" "${CMAKE_CURRENT_SOURCE_DIR}/gen" "klepsydra/tutorial" "False" "True" "True")
 
 # Must use GNUInstallDirs to install libraries into correct locations on all
 # platforms.

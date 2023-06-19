@@ -128,7 +128,7 @@ void kpsr::ApplicationService::execute() {}
 In this example, these functions are empty, except for log messages to
 let us know that the functions were called correctly. Note that the
 two classes `ApplicationService` and `ControlService` are completely
-independent of ROS, DDS or any middleware and deal with the
+independent of ROS or any middleware and deal with the
 sensors/controllers of the cubesat.
 
 <a name="specific-tutorials-for-each-case"></a>
@@ -137,5 +137,4 @@ sensors/controllers of the cubesat.
 - [Tutorial for basic case, using no middlewares](./chapter3_part1.md)
 - [Tutorial for basic case, ensuring subscribers are single threaded & thread-safe](./chapter3_part2.md)
 - [Tutorial with ROS](./chapter3_part3.md)
-- [Tutorial with DDS](./chapter3_part4.md)
 

@@ -11,9 +11,6 @@
     * [Example 2: Reception of data](#example-2)
     * [Example 3: A more complex example + Publishing with ROS types](#example-3)
     * [Example 4: ROS Env](#example-4)
-* [DDS](#dds)
-    * [Sending / receiving data - the HelloWorld example](#dds-sending-receiving-data)
-    * [DDS Env](#dds-env)
 * [ZMQ](#zmq)
     * [Hello World example](#zmq-hello-world-example)
     * [ZMQ Env](#zmq-env)
@@ -21,9 +18,7 @@
 <a name="introduction"></a>
 ## Introduction
 
-Klepsydra's API for DDS[^1], ZMQ and ROS are part of the composition API presented in [chapter 1](chapter1.md). The functionality offered for each of these middlewares include:
-
-[^1]: DDS and YAML are no longer supported. Please, download `kpsr-core` up to [v7.8.0](https://github.com/klepsydra-technologies/kpsr-core/tree/v7.8.0) to test DDS and/or YAML functionality.
+Klepsydra's API for ZMQ and ROS are part of the composition API presented in [chapter 1](chapter1.md). The functionality offered for each of these middlewares include:
 
 * **Publication to Middleware**. Fulfilling the ```kpsr::Publisher``` API, Klepsydra offers an efficient way to publish to the middleware.
 * **Subscription from Middleware**. The most powerful element of Klepsydra is the reception of incoming data from the middleware and passing it to the application. The associated API is explained in detail in this chapter.
@@ -304,66 +299,6 @@ int main(int argc, char **argv) {
 * The Environment class interface can be used to get and set values. When getting/setting a parameter, you must know the type of the parameter and use the relevant getter/setter.
 * After running this example, you can verify that a new parameter `/paramFloat` exists with a value 1.5 using the `rosparam` command-line utility.
 
-<a name="dds"></a>
-## DDS
-
-When Klepsydra is compiled and installed with DDS support[^1], three DDS specific libraries are installed: `kpsr_dds_serialization_datamodel`, `kpsr_dds_core` and `kpsr_dds_core_datamodel`, and are available to be linked against using the environment variable `KLEPSYDRA_DDS_LIBRARIES`. The `kpsr_dds_serialization` provides DDS compatible types for primitive data types. As DDS requires message data types to be specified in an *.idl file, Klepsydra provides the primitive data types in wrapped formats which also include the sequence number field. The `kpsr_dds_serialization` also provides mapping functions to conveniently transform data from the primitive type to the dds specific type.
-
-<a name="dds-sending-receiving-data"></a>
-### Sending / receiving data - the HelloWorld example
-
-The HelloWorld example for DDS can then use the same SimplePublisher class as shown for ROS and the complete example would be as shown below:
-
-```cpp
-
-int main(int argc, char **argv) {
-    dds::domain::DomainParticipant dp(0);
-    dds::pub::Publisher publisher(dp);
-    dds::sub::Subscriber subscriber(dp);
-
-    dds::topic::Topic<kpsr_dds_serialization::StringData> stringDataTopic(dp, "stringData");
-    dds::pub::DataWriter<kpsr_dds_serialization::StringData> stringDataWriter(publisher, stringDataTopic);
-    dds::sub::DataReader<kpsr_dds_serialization::StringData> stringDataReader(subscriber, stringDataTopic);
-
-    kpsr::dds_mdlw::ToDDSMiddlewareProvider provider(nullptr);
-    kpsr::dds_mdlw::FromDDSMiddlewareProvider ddsProvider;
-
-    kpsr::Publisher<std::string> * stringDataPublisher =
-            provider.getToMiddlewareChannel<std::string, kpsr_dds_serialization::StringData>("stringData", 0, nullptr, &stringDataWriter);
-
-    SimplePublisher publisher(stringDataPublisher);
-
-    kpsr::high_performance::EventLoopMiddlewareProvider<16> stringDataSafeQueueProvider(nullptr);
-    stringDataSafeQueueProvider.start();
-    ddsProvider.registerToTopic("stringData", &stringDataReader, true, stringDataSafeQueueProvider.getPublisher<std::string>("string", 0, nullptr, nullptr));
-
-    stringDataSafeQueueProvider.getSubscriber<std::string>("string")->registerListener("example", [](std::string &msg) {
-        std::cout << "Received message: " << msg << std::endl; });
-
-    simplePublisher.run();
-
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-
-    stringDataSafeQueueProvider.getSubscriber<std::string>("string")->removeListener("example");
-    stringDataSafeQueueProvider.stop();
-    ddsProvider.unregisterFromTopic("stringData", &stringDataReader);
-}
-```
-
-* The first 6 lines show the standard method for setting up a DDS domain participant with its publisher, subscriber, topic, writer and  reader.
-* Next, we set up the ```kpsr::dds_mdlw::ToDDSMiddlewareProvider``` base factory for the Klepsydra publishers and the ```kpsr::dds_mdlw::FromDDSMiddlewareProvider``` base factory for the Klepsydra subscribers.
-* The publisher factory gives us the Klepsydra string publisher which will map to the DDS publisher. We can use this to create the SimplePublisher class instance.
-* Next we set up the Klepsydra event loop, in this case the ```kpsr::high_performance::EventLoopMiddlewareProvider``` as we are only running a simple test. Similar to examples in Chapter 1 of this tutorial, we can also use other high performance APIs that Klepsydra provides.
-* ```kpsr::dds_mdlw::FromDDSMiddlewareProvider``` allows us to connect Klepsydra to DDS subscribers using the `registerToTopic` function, similar to the ROS case. While the function is a templated function, we do not need to provide the template types (i.e the C++ data type, and the DDS specific type), since those can be deduced from the input parameters. The ```kpsr::dds_mdlw::FromDDSMiddlewareProvider::registerToTopic``` function requires 4 parameters - the topic name, the associated DDS Reader, the boolean to specify whether to remove read messages from DDS queue or not, and the internal klepsydra publisher. In this case, the internal publisher is obtained from the event loop.
-* Next, we attach the listener callback to the subscriber obtained from the event loop. With this, the klepsydra set up is done.
-As you can see from the code, the application we intended (publish "Hello World") remained unaffected by the middleware type. The class used in the ROS example was reused in the DDS example and the Klepsydra API allowed us to easily use it with DDS. Additionally, since the event loop used is the same (whether in ROS or DDS), we get the same advantages of the high performance API.
-
-<a name="dds-env"></a>
-### DDS Env
-
-The ```kpsr::dds_mdlw::DDSEnv``` class is the Environment class built to share and access global data parameters over the DDS distributed environment. The Environment class defines the interface used by the ```kpsr::dds_mdlw::DDSEnv``` to access the parameters. These parameters are loaded from a YAML[^1] file into a YamlEnvironment class, and are made available to the DDS environment via a specific pair of DDS Reader/Writers. As a result, these parameters are accessible over the entire DDS environment, and any changes to these parameters are also visible to Klepsydra applications.
-
-<a name="zmq"></a>
 ## ZMQ
 
 Klepsydra compiled with ZMQ support generates the `kpsr_zmq_core` library which is available to be linked by applications. In order to send or receive data using ZMQ, Klepsydra provides three ways of serializing data - JSON encoding, binary encoding, or raw data. When dealing with primitive data types, no additional steps are required and we show below how the previous simple example would be used.
@@ -426,7 +361,7 @@ int main (int argv, char ** argc) {
     kpsr::Publisher<std::string> * toZMQPublisher = toZMQMiddlewareProvider.getJsonToMiddlewareChannel<std::string>(topic, 0);
 ```
 We could also use a binary serializer using the `getBinaryToMiddlewareChannel` or use raw data bytes using the `getVoidCasterToMiddlewareChannel` functions.
-* Next we set up the SimplePublisher, in the same way as examples in DDS and ROS.
+* Next we set up the SimplePublisher, in the same way as examples in ROS.
 * Next two lines show how to set up a subscriber factory which will receive JSON strings.
 ```
     kpsr::zmq_mdlw::FromZmqMiddlewareProvider _fromZmqMiddlewareProvider;
@@ -443,4 +378,4 @@ The subscriber factory in the ZMQ case is always the ```kpsr::zmq_mdlw::FromZmqM
 <a name="zmq-env"></a>
 ### ZMQ Env
 
-The ```kpsr::zmq_mdlw::ZMQEnv``` is similar to the ```kpsr::dds_mdlw::DDSEnv``` in that it is a wrapper to the ```kpsr::YamlEnvironment``` class that holds the configuration for the environment (or global data parameters to be shared over the ZMQ network), along with an ability to share this data over the network. It functions similarly, allowing reading global parameters and writing to them too. The changes to the parameters are visible immediately to all Klepsydra applications that are on the ZMQ network. As it inherits from the ```kpsr::Environment``` class, the interface is the same as DDS or ROS.
+```kpsr::zmq_mdlw::ZMQEnv``` is a wrapper to the JSON-based `kpsr::ConfigurationEnvironment` class that holds the configuration for the environment (or global data parameters to be shared over the ZMQ network), along with an ability to share this data over the network. It functions similarly, allowing reading global parameters and writing to them too. The changes to the parameters are visible immediately to all Klepsydra applications that are on the ZMQ network. As it inherits from the ```kpsr::Environment``` class, the interface is the same as ROS.

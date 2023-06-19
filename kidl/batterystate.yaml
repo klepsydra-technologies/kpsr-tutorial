@@ -14,10 +14,6 @@
 
 class_name: kpsr::sensors::BatteryState
 middlewares:
-    - type: DDS
-      class_name: kpsr_dds_sensors::BatteryState
-      sequence_fields:
-          - seq
     - type: ROS
       project_name: sensor_msgs
       class_name: BatteryState

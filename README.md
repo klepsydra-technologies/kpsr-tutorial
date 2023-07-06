@@ -38,7 +38,10 @@ No separate installation is needed for the following dependencies if the Klepsyd
 
 ## Klepsydra dependencies
 
+The following dependencies need to be installed:
+
 * [kpsr-core](https://github.com/klepsydra-technologies/kpsr-core) (installed with YAML[^1] support)
+* [kpsr-codegen](https://github.com/klepsydra-technologies/kpsr-codegen)
 
 `kpsr-build` will be pulled in automatically by the install process of this project.
 

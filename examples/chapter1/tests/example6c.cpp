@@ -57,7 +57,7 @@ TEST(ApplicationServiceTest, nominalTest)
         auto lastEvent = eventListener.getLastReceivedEvent();
         ASSERT_NE(lastEvent, nullptr);
         ASSERT_EQ(*lastEvent, kpsr::SystemEventData::Start);
-        ASSERT_TRUE(applicationService._started);
+        ASSERT_TRUE(applicationService.started);
     }
     {
         // Test with low value
@@ -66,7 +66,7 @@ TEST(ApplicationServiceTest, nominalTest)
         auto firstEvent = eventListener.getLastReceivedEvent();
         ASSERT_NE(firstEvent, nullptr);
         ASSERT_EQ(*firstEvent, kpsr::SystemEventData::Stop);
-        ASSERT_FALSE(applicationService._started);
+        ASSERT_FALSE(applicationService.started);
     }
 
     controlService.shutdown();

@@ -14,8 +14,8 @@
 
 #include <iostream>
 
-#include <klepsydra/core/event_transform_forwarder.h>
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
+#include <klepsydra/sdk/event_transform_forwarder.h>
 
 int main()
 {

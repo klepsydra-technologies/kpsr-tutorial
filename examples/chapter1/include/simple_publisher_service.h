@@ -17,14 +17,14 @@
 #ifndef SIMPLE_PUBLISHER_SERVICE_H
 #define SIMPLE_PUBLISHER_SERVICE_H
 
-#include <klepsydra/core/publisher.h>
-#include <klepsydra/core/service.h>
+#include <klepsydra/sdk/publisher.h>
+#include <klepsydra/sdk/service.h>
 
 class SimplePublisherService : public kpsr::Service
 {
 public:
     SimplePublisherService(kpsr::Publisher<std::string> *publisher)
-        : kpsr::Service(nullptr, "publisher_service")
+        : kpsr::Service(nullptr, nullptr, "publisher_service")
         , _publisher(publisher)
     {}
 

@@ -58,32 +58,32 @@ add_executable(${PROJ_NAME}_1 ${${PROJ_NAME}_1_SRC} ${${PROJ_NAME}_1_HEADERS})
 
 target_link_libraries(${PROJ_NAME}_1 PUBLIC ${KLEPSYDRA_CORE_LIBRARIES})
 
-target_include_directories(
-  ${PROJ_NAME}_1 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+target_include_directories(${PROJ_NAME}_1
+                           PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 add_executable(${PROJ_NAME}_2 ${${PROJ_NAME}_2_SRC} ${${PROJ_NAME}_2_HEADERS})
 
 target_link_libraries(${PROJ_NAME}_2 PUBLIC ${KLEPSYDRA_CORE_LIBRARIES})
 
 target_include_directories(
-  ${PROJ_NAME}_2 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-                         ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+    ${PROJ_NAME}_2 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+                           ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 add_executable(${PROJ_NAME}_3 ${${PROJ_NAME}_3_SRC} ${${PROJ_NAME}_3_HEADERS})
 
 target_link_libraries(${PROJ_NAME}_3 PUBLIC ${KLEPSYDRA_CORE_LIBRARIES})
 
 target_include_directories(
-  ${PROJ_NAME}_3 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-                         ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+    ${PROJ_NAME}_3 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+                           ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 add_executable(${PROJ_NAME}_4 ${${PROJ_NAME}_4_SRC} ${${PROJ_NAME}_4_HEADERS})
 
 target_link_libraries(${PROJ_NAME}_4 PUBLIC ${KLEPSYDRA_CORE_LIBRARIES})
 
 target_include_directories(
-  ${PROJ_NAME}_4 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-                         ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+    ${PROJ_NAME}_4 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+                           ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 add_executable(${PROJ_NAME}_5 ${${PROJ_NAME}_5_SRC} ${${PROJ_NAME}_5_HEADERS})
 

@@ -16,17 +16,16 @@
 
 #include <zmq.hpp>
 
+#include <klepsydra/high_performance/event_loop_middleware_provider.h>
+#include <klepsydra/serialization/json_cereal_mapper.h>
 #include <klepsydra/zmq_core/from_zmq_middleware_provider.h>
 #include <klepsydra/zmq_core/to_zmq_middleware_provider.h>
 
-#include <klepsydra/serialization/json_cereal_mapper.h>
-
 #include "simple_publisher.h"
-#include <klepsydra/high_performance/event_loop_middleware_provider.h>
 
-int main(int argv, char **argc)
+int main()
 {
-    // Set up zmq specific options.
+    // Set up ZMQ specific options
     std::string serverUrl = "tcp://*:9001";
     std::string topic = "example1";
     zmq::context_t context(1);
@@ -35,27 +34,27 @@ int main(int argv, char **argc)
     std::string clientUrl = "tcp://localhost:9001";
     zmq::socket_t subscriber(context, ZMQ_SUB);
     subscriber.connect(clientUrl);
-    subscriber.setsockopt(ZMQ_SUBSCRIBE, topic.c_str(), topic.size());
+    subscriber.set(zmq::sockopt::subscribe, topic);
 
-    // ZMQ set up over, now our simple example:
-
+    // ZMQ set up over, now our simple example
     kpsr::zmq_mdlw::ToZMQMiddlewareProvider toZMQMiddlewareProvider(nullptr, publisher);
     kpsr::Publisher<std::string> *toZMQPublisher =
         toZMQMiddlewareProvider.getJsonToMiddlewareChannel<std::string>(topic, 0);
 
     SimplePublisher publisherS(toZMQPublisher);
 
-    //  Process 100 updates
-    kpsr::zmq_mdlw::FromZmqMiddlewareProvider _fromZmqMiddlewareProvider;
-    kpsr::zmq_mdlw::FromZmqChannel<std::string> *_jsonFromZMQProvider =
-        _fromZmqMiddlewareProvider.getJsonFromMiddlewareChannel<std::string>(subscriber, 100);
-    _jsonFromZMQProvider->start();
+    // Process 100 updates
+    kpsr::zmq_mdlw::FromZmqMiddlewareProvider fromZmqMiddlewareProvider;
+    auto jsonFromZmqProvider = fromZmqMiddlewareProvider
+                                   .getJsonFromMiddlewareChannel<std::string>(subscriber, 100);
+    jsonFromZmqProvider->start();
 
     kpsr::high_performance::EventLoopMiddlewareProvider<16> stringDataSafeQueueProvider(nullptr);
     stringDataSafeQueueProvider.start();
 
-    _jsonFromZMQProvider->registerToTopic(
-        topic, stringDataSafeQueueProvider.getPublisher<std::string>(topic, 0, nullptr, nullptr));
+    jsonFromZmqProvider->registerToTopic(topic,
+                                         stringDataSafeQueueProvider
+                                             .getPublisher<std::string>(topic, 0, nullptr, nullptr));
 
     stringDataSafeQueueProvider.getSubscriber<std::string>(topic)
         ->registerListener("example", [](std::string const &msg) {
@@ -68,6 +67,6 @@ int main(int argv, char **argc)
 
     stringDataSafeQueueProvider.getSubscriber<std::string>(topic)->removeListener("example");
     stringDataSafeQueueProvider.stop();
-    _jsonFromZMQProvider->unregisterFromTopic(topic);
-    _jsonFromZMQProvider->stop();
+    jsonFromZmqProvider->unregisterFromTopic(topic);
+    jsonFromZmqProvider->stop();
 }

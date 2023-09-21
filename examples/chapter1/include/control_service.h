@@ -18,11 +18,11 @@
 #define CONTROL_SERVICE_H
 
 #include <iostream>
-#include <klepsydra/core/environment.h>
-#include <klepsydra/core/publisher.h>
-#include <klepsydra/core/service.h>
-#include <klepsydra/core/subscriber.h>
 #include <klepsydra/core/system_event.h>
+#include <klepsydra/sdk/environment.h>
+#include <klepsydra/sdk/publisher.h>
+#include <klepsydra/sdk/service.h>
+#include <klepsydra/sdk/subscriber.h>
 
 namespace kpsr {
 class ControlService : public Service
@@ -31,7 +31,7 @@ public:
     ControlService(kpsr::Subscriber<float> *batterySubscriber,
                    kpsr::Publisher<kpsr::SystemEventData> *statusPublisher,
                    kpsr::Environment *env)
-        : Service(env, "control_service")
+        : Service(nullptr, env, "control_service")
         , _batterySubscriber(batterySubscriber)
         , _statusPublisher(statusPublisher)
     {}
@@ -41,12 +41,12 @@ protected:
     {
         std::function<void(float)> listenerFunction = [this](const float event) {
             float lowThreshold;
-            this->_environment->getPropertyFloat("low_threshold", lowThreshold);
+            this->environment->getPropertyFloat("low_threshold", lowThreshold);
             if (lowThreshold >= event) {
                 _statusPublisher->publish(kpsr::SystemEventData::Stop);
             }
             float highThreshold;
-            this->_environment->getPropertyFloat("high_threshold", highThreshold);
+            this->environment->getPropertyFloat("high_threshold", highThreshold);
             if (highThreshold <= event) {
                 _statusPublisher->publish(kpsr::SystemEventData::Start);
             }

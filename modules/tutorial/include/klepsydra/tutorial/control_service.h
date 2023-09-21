@@ -19,11 +19,11 @@
 
 #include <atomic>
 
-#include <klepsydra/core/environment.h>
-#include <klepsydra/core/publisher.h>
-#include <klepsydra/core/service.h>
-#include <klepsydra/core/subscriber.h>
 #include <klepsydra/core/system_event.h>
+#include <klepsydra/sdk/environment.h>
+#include <klepsydra/sdk/publisher.h>
+#include <klepsydra/sdk/service.h>
+#include <klepsydra/sdk/subscriber.h>
 
 #include "klepsydra/tutorial/battery_state.h"
 #include "klepsydra/tutorial/temperature.h"

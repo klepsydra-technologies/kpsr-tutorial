@@ -17,9 +17,11 @@
 #ifndef SUM_VECTOR_DATA_H
 #define SUM_VECTOR_DATA_H
 
-#include <klepsydra/core/publisher.h>
-#include <klepsydra/core/subscriber.h>
+#include <klepsydra/sdk/publisher.h>
+#include <klepsydra/sdk/subscriber.h>
 #include <numeric>
+#include <thread>
+#include <vector>
 
 class SumVectorData
 {

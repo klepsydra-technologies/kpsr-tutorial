@@ -32,7 +32,6 @@
 * Understanding of the publisher/subscriber pattern [example](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern).
 * Basic knowledge of [CMAKE](https://cmake.org/).
 * [Unit testing](https://en.wikipedia.org/wiki/Unit_testing) knowledge and [google test](https://github.com/google/googletest) framework.
-* Although not required beforehand, there will be use of [YAML language](https://yaml.org/)[^1].
 * Klepsydra recommends the use of the [composition root](https://medium.com/@cfryerdev/dependency-injection-composition-root-418a1bb19130) and [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection) patterns. These two concepts appear repeatedly throughout this tutorial.
 
 <a name="technical-requirements"></a>
@@ -58,7 +57,7 @@ This tutorial does not intend to cover the complete API of Klepsydra Core, but t
 Lets start with a simple example. First, let's create a class that publishes a string:
 
 ```cpp
-#include <klepsydra/core/publisher.h>
+#include <klepsydra/sdk/publisher.h>
 
 class SimplePublisher {
 public:
@@ -788,7 +787,7 @@ Now, this service can be started using the public function ```startup``` and it 
 
 If we see the previous example, it becomes clear that the threshold value for the battery must be hard coded into the code. However, in real cases, it would be preferable to have such data depend on the real environment. The code for services should not have to be modified according to the environment in which the application is running. For example, one should be able to provide a configuration file to set these values, or for example, in case of ROS system provide run time values via command line.
 
-Klepsydra provides a `kpsr::Environment` API that provides this facility. It allows us to isolate the services and other code from the environment in which it will run. The `kpsr::mem::MemEnv` is one such implementation providing a in-memory environment used specially for unit testing. Also, the `kpsr::YamlEnvironment` (available when Klepsydra is compiled with YAML support[^1]), allows setting up an environment using a YAML file. With this, the application can be run in different environments just by providing a different YAML configuration file.
+Klepsydra provides a `kpsr::Environment` API that provides this facility. It allows us to isolate the services and other code from the environment in which it will run. The `kpsr::mem::MemEnv` is one such implementation providing a in-memory environment used specially for unit testing. Also, the `kpsr::ConfigurationEnvironment` allows setting up an environment using a JSON file. With this, the application can be run in different environments just by providing a different JSON configuration file.
 
 Using the environment api, the relevant ControlService code changes as shown below. We only present the functions that change, and also add another constraint by providing an upper threshold.
 
@@ -845,12 +844,12 @@ protected:
     void ControlService::start() {
         std::function<void(float)> listenerFunction = [this](const float event) {
             float lowThreshold;
-            this->_environment->getFloatProperty("low_threshold", lowThreshold);
+            this->environment->getFloatProperty("low_threshold", lowThreshold);
             if (lowThreshold >= event) {
                 _statusPublisher->publish(kpsr::SystemEventData::Stop);
             }
             float highThreshold;
-            this->_environment->getFloatProperty("low_threshold", highThreshold);
+            this->environment->getFloatProperty("low_threshold", highThreshold);
             if (highThreshold <= event) {
                 _statusPublisher->publish(kpsr::SystemEventData::Start);
             }
@@ -912,7 +911,7 @@ So, in the next example a ```kpsr::EventTransformForwarder``` object obtains the
 #include <iostream>
 
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
-#include <klepsydra/core/event_transform_forwarder.h>
+#include <klepsydra/sdk/event_transform_forwarder.h>
 
 
 int main() {

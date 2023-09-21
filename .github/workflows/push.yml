@@ -36,7 +36,7 @@ jobs:
       image: ghcr.io/klepsydra-technologies/kpsrbase:1.0.0
     steps:
       - name: Clone project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -75,72 +75,3 @@ jobs:
             build/CMakeFiles/CMakeOutput.log
             build/CMakeFiles/CMakeError.log
             build/Testing/Temporary
-
-  ros:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rosrelease: ["noetic"]
-    name: ROS ${{ matrix.rosrelease }}
-    env:
-      ROS_DISTRO: ${{ matrix.rosrelease }}
-    container:
-      image: "ghcr.io/klepsydra-technologies/kpsr${{ matrix.rosrelease }}:1.0.0"
-    steps:
-      - name: Clone project
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
-          path: kpsr-tutorial
-
-      - name: Install Dependencies
-        uses: ./kpsr-tutorial/.github/actions/deps/
-
-      - name: Install project
-        run: |
-          mkdir build && cd build
-
-          cmake -DCMAKE_BUILD_TYPE=Release ../
-          make -j$(nproc)
-          sudo make -j$(nproc) install
-        working-directory: kpsr-tutorial
-
-      - name: Create ROS environment
-        run: |
-          source /opt/ros/$ROS_DISTRO/setup.bash
-          mkdir -p ${GITHUB_WORKSPACE}/kpsr-ros/src/build
-          cd ${GITHUB_WORKSPACE}/kpsr-ros/src
-          catkin_init_workspace
-          ln -s ${GITHUB_WORKSPACE}/kpsr-core/core/modules/ros_mdlw/kpsr_ros_core .
-          ln -s ${GITHUB_WORKSPACE}/kpsr-core/serialization/modules/ros_mdlw/kpsr_ros_serialization .
-          ln -s ${GITHUB_WORKSPACE}/kpsr-tutorial/examples/chapter1 .
-          ln -s ${GITHUB_WORKSPACE}/kpsr-tutorial/examples/chapter2 .
-          ls -la ${GITHUB_WORKSPACE}
-
-      - name: Build ros
-        run: |
-          source /opt/ros/$ROS_DISTRO/setup.bash
-          cd ${GITHUB_WORKSPACE}/kpsr-ros/src/build
-          cmake ../
-          make -j$(nproc)
-          make -j$(nproc) tests
-
-      - name: Run tests
-        timeout-minutes: 15
-        run: |
-          source /opt/ros/$ROS_DISTRO/setup.bash
-          cd ${GITHUB_WORKSPACE}/kpsr-ros/src/build
-          roscore &
-          sleep 2
-          make test
-
-      - name: Upload logs on failure
-        uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: ros-${{ matrix.rosrelease }}
-          path: |
-            build/Testing/Temporary
-            build/code_generator/kpsr_codegen/build_cpptesting/Testing/Temporary
-            ${GITHUB_WORKSPACE}/kpsr-ros/src/build/Testing/Temporary
-            ${GITHUB_WORKSPACE}/kpsr-ros/src/build/test_results

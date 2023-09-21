@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-IF(KPSR_WITH_ZMQ)
-  add_subdirectory(zmq_examples)
-ENDIF()
+if(KPSR_WITH_ZMQ)
+    add_subdirectory(zmq_examples)
+endif()

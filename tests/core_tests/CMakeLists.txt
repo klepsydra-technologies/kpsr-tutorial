@@ -12,34 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-SET(PROJ_NAME kpsr_${PROJ_MAIN_NAME}_tests)
-PROJECT(${PROJ_NAME})
+set(PROJ_NAME kpsr_${PROJ_MAIN_NAME}_tests)
+project(${PROJ_NAME})
 
 # Include directories with headers
-#---------------------------------------------------#
-INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/include )
-INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/gen/poco/include )
-INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/modules/${PROJ_MAIN_NAME}/include )
-INCLUDE_DIRECTORIES( ${KLEPSYDRA_INCLUDE_DIRS} )
+# ---------------------------------------------------#
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_SOURCE_DIR}/gen/poco/include)
+include_directories(${CMAKE_SOURCE_DIR}/modules/${PROJ_MAIN_NAME}/include)
+include_directories(${KLEPSYDRA_INCLUDE_DIRS})
 
 # Source
-#---------------------------------------------------#
-FILE(GLOB ${PROJ_NAME}_SRC
-    "src/*.cpp"
-)
+# ---------------------------------------------------#
+file(GLOB ${PROJ_NAME}_SRC "src/*.cpp")
 
 # Link libraries with Project
-#---------------------------------------------------#
-LINK_DIRECTORIES(${KPSR_INSTALL_PATH}/lib )
+# ---------------------------------------------------#
+link_directories(${KPSR_INSTALL_PATH}/lib)
 
 # Create Library
-#---------------------------------------------------#
-ADD_EXECUTABLE(${PROJ_NAME} ${${PROJ_NAME}_HEADERS} ${${PROJ_NAME}_SRC} )
+# ---------------------------------------------------#
+add_executable(${PROJ_NAME} ${${PROJ_NAME}_HEADERS} ${${PROJ_NAME}_SRC})
 
-TARGET_LINK_LIBRARIES(${PROJ_NAME}
-  kpsr_${PROJ_MAIN_NAME}
-  ${KLEPSYDRA_CORE_LIBRARIES}
-  gtest_main)
+target_link_libraries(${PROJ_NAME} kpsr_${PROJ_MAIN_NAME}
+                      ${KLEPSYDRA_CORE_LIBRARIES} gtest_main)
 
 add_test(NAME ${PROJ_NAME} COMMAND ${PROJ_NAME})

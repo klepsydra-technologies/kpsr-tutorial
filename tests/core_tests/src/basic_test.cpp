@@ -249,17 +249,17 @@ TEST(ControlServiceEnvironmentTest, checkEnvironmentPropsTest)
                                    &statusPublisher);
 
     float value;
-    testClass._environment->getPropertyFloat("TEMPERATURE_THRESHOLD_HIGH_STOP", value);
+    testClass.environment->getPropertyFloat("TEMPERATURE_THRESHOLD_HIGH_STOP", value);
     ASSERT_EQ(TEMPERATURE_THRESHOLD_HIGH_STOP, value);
 
-    testClass._environment->getPropertyFloat("TEMPERATURE_THRESHOLD_HIGH_START", value);
+    testClass.environment->getPropertyFloat("TEMPERATURE_THRESHOLD_HIGH_START", value);
     ASSERT_EQ(TEMPERATURE_THRESHOLD_HIGH_START, value);
-    testClass._environment->getPropertyFloat("TEMPERATURE_THRESHOLD_LOW_STOP", value);
+    testClass.environment->getPropertyFloat("TEMPERATURE_THRESHOLD_LOW_STOP", value);
     ASSERT_EQ(TEMPERATURE_THRESHOLD_LOW_STOP, value);
-    testClass._environment->getPropertyFloat("TEMPERATURE_THRESHOLD_LOW_START", value);
+    testClass.environment->getPropertyFloat("TEMPERATURE_THRESHOLD_LOW_START", value);
     ASSERT_EQ(TEMPERATURE_THRESHOLD_LOW_START, value);
-    testClass._environment->getPropertyFloat("BATTERY_THRESHOLD_LOW", value);
+    testClass.environment->getPropertyFloat("BATTERY_THRESHOLD_LOW", value);
     ASSERT_EQ(BATTERY_THRESHOLD_LOW, value);
-    testClass._environment->getPropertyFloat("BATTERY_THRESHOLD_LOW_START", value);
+    testClass.environment->getPropertyFloat("BATTERY_THRESHOLD_LOW_START", value);
     ASSERT_EQ(BATTERY_THRESHOLD_LOW_START, value);
 }

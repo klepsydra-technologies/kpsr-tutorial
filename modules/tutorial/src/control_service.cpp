@@ -19,7 +19,7 @@ kpsr::ControlService::ControlService(
     kpsr::Subscriber<kpsr::sensors::BatteryState> *batterySubscriber,
     kpsr::Subscriber<kpsr::sensors::Temperature> *temperatureSubscriber,
     kpsr::Publisher<kpsr::SystemEventData> *publisherSysEvent)
-    : Service(environment, "control_service")
+    : Service(nullptr, environment, "control_service")
     , _status(kpsr::SystemEventData::Idle)
     , _batteryOk(kpsr::SystemEventData::Idle)
     , _temperatureOk(kpsr::SystemEventData::Idle)

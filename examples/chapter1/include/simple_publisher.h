@@ -18,7 +18,8 @@
 #define SIMPLE_PUBLISHER_H
 
 #include <iostream>
-#include <klepsydra/core/publisher.h>
+#include <klepsydra/sdk/publisher.h>
+#include <thread>
 
 class SimplePublisher
 {

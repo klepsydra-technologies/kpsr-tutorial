@@ -4,8 +4,25 @@ runs:
   using: "composite"
 
   steps:
+    - name: Clone kpsr-sdk
+      uses: actions/checkout@v4
+      with:
+        repository: klepsydra-technologies/kpsr-sdk
+        ref: main
+        submodules: recursive
+        path: kpsr-sdk
+
+    - name: Build and install SDK
+      shell: bash
+      run: |
+        mkdir build && cd build/
+        cmake ..
+        make -j$(nproc)
+        make install
+      working-directory: kpsr-sdk
+
     - name: Clone kpsr-core
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: klepsydra-technologies/kpsr-core
         ref: main
@@ -16,13 +33,14 @@ runs:
       shell: bash
       run: |
         mkdir build && cd build 
-        cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=true -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug ../ 
+        cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_ZMQ=true -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true \
+              -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug ../ 
         make -j$(nproc)
         sudo make install
       working-directory: kpsr-core
 
     - name: Clone kpsr-codegen
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: klepsydra-technologies/kpsr-codegen
         ref: main

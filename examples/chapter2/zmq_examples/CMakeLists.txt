@@ -12,33 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set(PROJ_NAME kpsr_${PROJ_MAIN_NAME}_chapter2)
+project(${PROJ_NAME})
 
-SET(PROJ_NAME kpsr_zmq_${PROJ_MAIN_NAME})
-PROJECT(${PROJ_NAME})
-
-#find cppzmq wrapper, installed by make of cppzmq
-find_package(cppzmq)
+list(FIND KLEPSYDRA_ZMQ_LIBRARIES "kpsr_zmq_core" KPSR_ZMQ)
+if(KPSR_ZMQ EQUAL -1)
+    message(
+        FATAL_ERROR
+            "Klepsydra Core installed without ZMQ. \
+Please reinstall by enabling ZMQ support (passing -DKPSR_WITH_ZMQ=true to cmake options)"
+    )
+endif()
 
 # Source
-#---------------------------------------------------#
-FILE(GLOB ${PROJ_NAME}_SRC
-    "src/*.cpp"
-)
-FILE(GLOB ${PROJ_NAME}_HEADERS
-    "include/*.h"
-)
+# ---------------------------------------------------#
+file(GLOB ${PROJ_NAME}_SRC "src/*.cpp")
+file(GLOB ${PROJ_NAME}_HEADERS "include/*.h")
 
-# Link libraries with Project
-#---------------------------------------------------#
-ADD_EXECUTABLE(${PROJ_NAME} ${${PROJ_NAME}_HEADERS} ${${PROJ_NAME}_SRC} )
+# Create executables
+# ---------------------------------------------------#
+# Add executables
+# ---------------------------------------------------#
+add_executable(${PROJ_NAME}_1 ${${PROJ_NAME}_HEADERS} src/example_zmq.cpp)
+add_executable(${PROJ_NAME}_2 ${${PROJ_NAME}_HEADERS} src/environment_zmq.cpp)
 
-target_include_directories(
-    ${PROJ_NAME}
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+# Link libraries
+# ---------------------------------------------------#
+target_link_libraries(${PROJ_NAME}_1 PUBLIC ${KLEPSYDRA_ZMQ_LIBRARIES})
+target_link_libraries(${PROJ_NAME}_2 PUBLIC ${KLEPSYDRA_ZMQ_LIBRARIES})
 
-#---------------------------------------------------#
-TARGET_LINK_LIBRARIES(${PROJ_NAME}
-  ${KLEPSYDRA_CORE_LIBRARIES}
-  ${KLEPSYDRA_ZMQ_LIBRARIES}
-  cppzmq
-  atomic)
+# Include directories
+# ---------------------------------------------------#
+target_include_directories(${PROJ_NAME}_1
+                           PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -12,27 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-SET(PROJ_NAME kpsr_${PROJ_MAIN_NAME})
-PROJECT(${PROJ_NAME})
+set(PROJ_NAME kpsr_${PROJ_MAIN_NAME})
+project(${PROJ_NAME})
 
 # Source
-#---------------------------------------------------#
-FILE(GLOB ${PROJ_NAME}_SRC
-    "src/*.cpp"
-)
+# ---------------------------------------------------#
+file(GLOB ${PROJ_NAME}_SRC "src/*.cpp")
 
-FILE(GLOB_RECURSE ${PROJ_NAME}_HEADERS
-    "include/*.h"
-)
+file(GLOB_RECURSE ${PROJ_NAME}_HEADERS "include/*.h")
 
-FILE(GLOB_RECURSE ${PROJ_NAME}_GEN_HEADERS
-    "${${PROJ_MAIN_NAME}_PATH_MAIN}/gen/poco/include/*.h"
-)
+file(GLOB_RECURSE ${PROJ_NAME}_GEN_HEADERS
+     "${${PROJ_MAIN_NAME}_PATH_MAIN}/gen/poco/include/*.h")
 
 # Create Library
-#---------------------------------------------------#
-ADD_LIBRARY(${PROJ_NAME} ${${PROJ_MAIN_NAME}_LIB_TYPE} ${${PROJ_NAME}_HEADERS} ${${PROJ_NAME}_SRC} )
+# ---------------------------------------------------#
+add_library(${PROJ_NAME} ${${PROJ_MAIN_NAME}_LIB_TYPE} ${${PROJ_NAME}_HEADERS}
+                         ${${PROJ_NAME}_SRC})
 
 target_include_directories(
     ${PROJ_NAME}
@@ -41,29 +36,28 @@ target_include_directories(
            $<INSTALL_INTERFACE:include>)
 
 # Link libraries with Project
-#---------------------------------------------------#
-TARGET_LINK_LIBRARIES(${PROJ_NAME} atomic ${KLEPSYDRA_CORE_LIBRARIES})
+# ---------------------------------------------------#
+target_link_libraries(${PROJ_NAME} atomic ${KLEPSYDRA_CORE_LIBRARIES})
 
 # Install
-#---------------------------------------------------#
-INSTALL(TARGETS ${PROJ_NAME}
+# ---------------------------------------------------#
+install(
+    TARGETS ${PROJ_NAME}
     DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    COMPONENT libs
-)
-INSTALL(DIRECTORY "include/klepsydra"
+    COMPONENT libs)
+install(
+    DIRECTORY "include/klepsydra"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-    COMPONENT dev
-)
+    COMPONENT dev)
 
-INSTALL(DIRECTORY ${${PROJ_MAIN_NAME}_PATH_MAIN}/gen/poco/include/klepsydra
+install(
+    DIRECTORY ${${PROJ_MAIN_NAME}_PATH_MAIN}/gen/poco/include/klepsydra
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-    COMPONENT dev
-)
+    COMPONENT dev)
 
-INSTALL(DIRECTORY ${${PROJ_MAIN_NAME}_PATH_MAIN}/gen/rosstg/include/sensor_msgs
+install(
+    DIRECTORY ${${PROJ_MAIN_NAME}_PATH_MAIN}/gen/rosstg/include/sensor_msgs
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-    COMPONENT dev
-)
+    COMPONENT dev)
 
-#PRINTBASICINFO(${PROJ_NAME})
-
+# PRINTBASICINFO(${PROJ_NAME})

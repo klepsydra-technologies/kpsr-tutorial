@@ -7,7 +7,7 @@ RUN git clone https://github.com/klepsydra-technologies/kpsr-core.git && \
     git checkout ${KPSRCOREVERSION} && \
     git submodule update --init --recursive && \
     mkdir build && cd build && \
-    cmake -DCMAKE_BUILD_TYPE=Release -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_ZMQ=false -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true -DKPSR_WITH_YAML=true -DKPSR_WITH_CODE_METRICS=true ../ && \
+    cmake -DCMAKE_BUILD_TYPE=Release -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_ZMQ=true -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true -DKPSR_WITH_CODE_METRICS=true ../ && \
     make -j$(nproc) && \
     sudo make install && \
     cd ../../ && \

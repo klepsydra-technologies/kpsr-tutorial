@@ -20,7 +20,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <klepsydra/core/subscriber.h>
+#include <klepsydra/sdk/subscriber.h>
 
 class SlowListener
 {

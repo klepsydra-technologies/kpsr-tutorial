@@ -53,5 +53,3 @@ the first example, except for the changes brought about by using
 changes are necessary (compared to example1) to implement this. As can
 be seen, the changes are quite minimal.
 
-[Next Tutorial: Performance Monitoring](./chapter3_part3.md)
-

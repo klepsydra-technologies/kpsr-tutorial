@@ -18,7 +18,7 @@
 #define SIMPLE_EVENT_PUBLISHER_H
 
 #include <iostream>
-#include <klepsydra/core/publisher.h>
+#include <klepsydra/sdk/publisher.h>
 
 #include "test_event.h"
 

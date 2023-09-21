@@ -17,8 +17,8 @@
 #ifndef SIMPLE_SUBSCRIBER_SERVICE_H
 #define SIMPLE_SUBSCRIBER_SERVICE_H
 
-#include <klepsydra/core/service.h>
-#include <klepsydra/core/subscriber.h>
+#include <klepsydra/sdk/service.h>
+#include <klepsydra/sdk/subscriber.h>
 
 #include <iostream>
 
@@ -26,7 +26,7 @@ class SimpleSubscriberService : public kpsr::Service
 {
 public:
     SimpleSubscriberService(kpsr::Subscriber<std::string> *subscriber)
-        : Service(nullptr, "subcriber_service")
+        : Service(nullptr, nullptr, "subcriber_service")
         , _subscriber(subscriber)
     {}
 

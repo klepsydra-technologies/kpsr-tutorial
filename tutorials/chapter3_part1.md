@@ -21,14 +21,14 @@ messages.
 <a name="generate-headers-for-message-objects"></a>
 ## Generate headers for message objects
 
-The kpsr-code-generation package, if installed correctly, has the
+The `kpsr-code-generation` package, if installed correctly, has the
 `kpsr_codegen` utility to generate header files based on a YAML file
 describing the structure of the message. We use the BatteryState and
 Temperature messages used by ROS as a template to define the
 message. (Note, ROS is not necessary. We are only using their message
 types as a base to start off from.)
 
-Corresponding YAML files are in the `kidl`
+Corresponding YAML files are in the `kidl/`
 folder. `kpsr_codegen` application should take this folder as input
 and generate header files that we can use.
 

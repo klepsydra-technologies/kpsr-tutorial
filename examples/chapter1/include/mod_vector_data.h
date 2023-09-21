@@ -17,11 +17,13 @@
 #ifndef MOD_VECTOR_DATA_H
 #define MOD_VECTOR_DATA_H
 
-#include <klepsydra/core/publisher.h>
-#include <klepsydra/core/subscriber.h>
+#include <klepsydra/sdk/publisher.h>
+#include <klepsydra/sdk/subscriber.h>
 
 #include <cmath>
 #include <numeric>
+#include <thread>
+#include <vector>
 
 class ModuleVectorData
 {

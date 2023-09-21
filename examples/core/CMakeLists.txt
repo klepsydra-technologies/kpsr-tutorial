@@ -12,56 +12,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-SET(PROJ_NAME kpsr_${PROJ_MAIN_NAME}_example)
-PROJECT(${PROJ_NAME})
+set(PROJ_NAME kpsr_${PROJ_MAIN_NAME}_example)
+project(${PROJ_NAME})
 
 # Source
-#---------------------------------------------------#
-FILE(GLOB ${PROJ_NAME}_SRC
-    "src/*.cpp"
-)
+# ---------------------------------------------------#
+file(GLOB ${PROJ_NAME}_SRC "src/*.cpp")
 
 # Link libraries with Project
-#---------------------------------------------------#
-LINK_DIRECTORIES(${KPSR_INSTALL_PATH}/lib )
+# ---------------------------------------------------#
+link_directories(${KPSR_INSTALL_PATH}/lib)
 
 # Create Library
-#---------------------------------------------------#
-ADD_EXECUTABLE(${PROJ_NAME}_1 ${${PROJ_NAME}_HEADERS} src/example1.cpp )
+# ---------------------------------------------------#
+add_executable(${PROJ_NAME}_1 ${${PROJ_NAME}_HEADERS} src/example1.cpp)
 
 target_include_directories(
     ${PROJ_NAME}_1
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
-    
-TARGET_LINK_LIBRARIES(${PROJ_NAME}_1
-  kpsr_${PROJ_MAIN_NAME}
-  kpsr_core
-  kpsr_mem_core
-  ${CMAKE_THREAD_LIBS_INIT}
-)
 
-ADD_EXECUTABLE(${PROJ_NAME}_2 ${${PROJ_NAME}_HEADERS} src/example2.cpp )
+target_link_libraries(${PROJ_NAME}_1 kpsr_${PROJ_MAIN_NAME} kpsr_core
+                      kpsr_mem_core ${CMAKE_THREAD_LIBS_INIT})
+
+add_executable(${PROJ_NAME}_2 ${${PROJ_NAME}_HEADERS} src/example2.cpp)
 
 target_include_directories(
     ${PROJ_NAME}_2
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
-TARGET_LINK_LIBRARIES(${PROJ_NAME}_2
-  kpsr_${PROJ_MAIN_NAME}
-  ${KLEPSYDRA_CORE_LIBRARIES}
-  ${CMAKE_THREAD_LIBS_INIT}
-)
+target_link_libraries(${PROJ_NAME}_2 kpsr_${PROJ_MAIN_NAME}
+                      ${KLEPSYDRA_CORE_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
-ADD_EXECUTABLE(${PROJ_NAME}_3 ${${PROJ_NAME}_HEADERS} src/example3.cpp )
+add_executable(${PROJ_NAME}_3 ${${PROJ_NAME}_HEADERS} src/example3.cpp)
 
 target_include_directories(
     ${PROJ_NAME}_3
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
-TARGET_LINK_LIBRARIES(${PROJ_NAME}_3
-  kpsr_${PROJ_MAIN_NAME}
-  ${KLEPSYDRA_CORE_LIBRARIES}
-  ${CMAKE_THREAD_LIBS_INIT}
-)
-
+target_link_libraries(${PROJ_NAME}_3 kpsr_${PROJ_MAIN_NAME}
+                      ${KLEPSYDRA_CORE_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})

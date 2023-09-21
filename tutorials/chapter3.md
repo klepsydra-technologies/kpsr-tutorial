@@ -136,5 +136,4 @@ sensors/controllers of the cubesat.
 
 - [Tutorial for basic case, using no middlewares](./chapter3_part1.md)
 - [Tutorial for basic case, ensuring subscribers are single threaded & thread-safe](./chapter3_part2.md)
-- [Tutorial with ROS](./chapter3_part3.md)
 

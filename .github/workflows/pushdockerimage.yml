@@ -46,7 +46,7 @@ jobs:
           password: ${{ secrets.GH_TOKEN }}
 
       - name: Build and push KPSR Tutorial Docker image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: ./ci/docker/kpsrtutorial-1.0.0.dockerfile

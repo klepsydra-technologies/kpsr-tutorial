@@ -46,9 +46,14 @@ jobs:
 
       - name: Code format check
         run: |
-          mkdir build && cd build
-          cmake ../
+          mkdir build && cd build/
+          cmake ..
           make formatcheck
+
+      - name: Checks cmake files format
+        run: |
+          cd build/
+          make cmake-format-check
 
   codecoverage:
     name: Code coverage
@@ -60,15 +65,19 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Cmake files format check
+      - name: Install Dependencies
+        uses: ./.github/actions/deps/
+
+      - name: Build
         run: |
-          cd build
-          make -j$(nproc) cmake-format-check
+          mkdir build && cd build/
+          cmake .. -DKPSR_WITH_ZMQ=true -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug
+          make -j$(nproc)
 
       - name: Coverage
         timeout-minutes: 5
         run: |
-          cd build
+          cd build/
           make -j$(nproc) coverage
 
       - uses: codecov/codecov-action@v3

@@ -127,10 +127,21 @@ endif()
 add_definitions(-std=c++11)
 enable_testing()
 
+if(KPSR_WITH_CODE_METRICS)
+    if(CMAKE_BUILD_TYPE MATCHES Debug AND CMAKE_COMPILER_IS_GNUCXX)
+        include(CodeCoverage)
+        set(CODE_COVERAGE_VERBOSE ON)
+        append_coverage_compiler_flags()
+    endif()
+
+    # Code style check
+    include(CppcheckTargets)
+    include(Findcppcheck)
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # Configuration current project
 # ------------------------------------------------------------------------------------------------------
@@ -147,6 +158,24 @@ find_package(Threads REQUIRED)
 add_subdirectory(modules)
 add_subdirectory(tests)
 add_subdirectory(examples)
+
+# Code Coverage
+if(KPSR_WITH_CODE_METRICS
+   AND CMAKE_BUILD_TYPE MATCHES Debug
+   AND CMAKE_COMPILER_IS_GNUCXX)
+    string(REPLACE ${CMAKE_SOURCE_DIR}/ "" THIRDPARTIES_PATH_COVERAGE
+                   ${THIRDPARTIES_PATH})
+    list(
+        APPEND
+        COVERAGE_EXCLUDES
+        ${THIRDPARTIES_PATH_COVERAGE}
+        ${CMAKE_PREFIX_PATH}
+        tests
+        examples
+        /usr/
+        /opt)
+    setup_target_for_coverage_gcovr_xml(NAME coverage EXECUTABLE make test)
+endif()
 
 # Code format check
 include(CodeFormat)

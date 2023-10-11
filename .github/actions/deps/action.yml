@@ -19,6 +19,7 @@ runs:
         cmake ..
         make -j$(nproc)
         make install
+        cd ../../ && rm -rf kpsr-sdk/
       working-directory: kpsr-sdk
 
     - name: Clone kpsr-core
@@ -32,11 +33,11 @@ runs:
     - name: Build and install kpsr-core
       shell: bash
       run: |
-        mkdir build && cd build 
-        cmake -DKPSR_WITH_DOXYGEN=true -DKPSR_WITH_ZMQ=true -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true \
-              -DKPSR_WITH_CODE_METRICS=true -DCMAKE_BUILD_TYPE=Debug ../ 
+        mkdir build && cd build/
+        cmake -DKPSR_WITH_ZMQ=true -DKPSR_TEST_PERFORMANCE=true -DKPSR_WITH_SOCKET=true ../ 
         make -j$(nproc)
-        sudo make install
+        make install
+        cd ../../ && rm -rf kpsr-core/
       working-directory: kpsr-core
 
     - name: Clone kpsr-codegen
@@ -53,4 +54,5 @@ runs:
         pip3 install build
         python3 -m build --outdir dist
         pip3 install dist/kpsr_codegen-1.0-py3-none-any.whl
+        cd ../ && rm -rf kpsr-codegen/
       working-directory: kpsr-codegen

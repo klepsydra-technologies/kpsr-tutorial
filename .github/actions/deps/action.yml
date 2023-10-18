@@ -54,3 +54,8 @@ runs:
         python3 -m build --outdir dist
         pip3 install dist/kpsr_codegen-1.0-py3-none-any.whl
       working-directory: kpsr-codegen
+
+    - name: Remove sources
+      shell: bash
+      run: |
+        rm -rf kpsr-sdk kpsr-core kpsr-codegen

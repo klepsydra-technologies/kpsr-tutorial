@@ -16,10 +16,6 @@ name: Code style check
 
 on:
   pull_request:
-    types:
-      - opened
-      - ready_for_review
-      - reopened
   push:
     branches:
       - main

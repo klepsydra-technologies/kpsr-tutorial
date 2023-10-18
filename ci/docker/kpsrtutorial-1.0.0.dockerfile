@@ -1,10 +1,10 @@
 FROM ghcr.io/klepsydra-technologies/kpsrbase:1.0.0
 
 # Install kpsr-sdk
-ARG KPSRCOREVERSION="main"
+ARG KPSRSDKVERSION="main"
 RUN git clone https://github.com/klepsydra-technologies/kpsr-sdk.git && \
     cd kpsr-sdk && \
-    git checkout ${KPSRCOREVERSION} && \
+    git checkout ${KPSRSDKVERSION} && \
     git submodule update --init --recursive && \
     mkdir build && cd build && \
     cmake ../ && \

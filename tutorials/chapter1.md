@@ -85,8 +85,8 @@ We print the thread id in the publish and subscribe methods to demonstrate the d
 Let's now build simple main that makes use of this example class:
 
 ```cpp
-#include <iostream>
 #include "simple_publisher.h"
+#include <iostream>
 
 #include <klepsydra/core/event_emitter_middleware_provider.h>
 
@@ -94,7 +94,11 @@ int main() {
 
    std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
 
-   kpsr::EventEmitterMiddlewareProvider<std::string> provider(nullptr, "tutorial_app_api_example1", 0, nullptr, nullptr);
+       kpsr::EventEmitterMiddlewareProvider<std::string> provider(nullptr,
+                                                                  "tutorial_app_api_example1",
+                                                                  0,
+                                                                  nullptr,
+                                                                  nullptr);
 
    SimplePublisher simplePublisher(provider.getPublisher());
 
@@ -139,25 +143,31 @@ SimplePublisherClass (publisher) thread ID: 140398807541632
 As suggested before, the ```EventEmitterMiddlewareProvider``` is a test only provider, so let's change it for one of the two main high performance providers in Klepsydra: **The Event Loop**:
 
 ```cpp
+#include "simple_publisher.h"
 #include <iostream>
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
-#include "simple_publisher.h"
 
 int main() {
-   kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
+    kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
 
-   std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
+    std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
 
-   eventloop.start();
+    eventloop.start();
+    eventloop.getSubscriber<std::string>("example2")
+        ->registerListener("listener", [](const std::string &message) {
+            std::cout << "Message received: " << message << std::endl;
+            std::cout << "Eventloop (subscriber) thread ID: " << std::this_thread::get_id()
+                      << std::endl;
+        });
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+        1)); // Ensures listener has been registered before publisher runs.
 
-   eventloop.getSubscriber<std::string>("example2")->registerListener("listener",
-                                                            [](const std::string & message) {
-                                                                std::cout << "Message received: " << message << std::endl;
-                                                                std::cout << "Eventloop (subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
-                                                            });
-
-    SimplePublisher simplePublisher(eventloop.getPublisher<std::string>("example2", 0, nullptr, nullptr));
+    SimplePublisher simplePublisher(
+        eventloop.getPublisher<std::string>("example2", 0, nullptr, nullptr));
     simplePublisher.run();
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+        1)); // Ensures published message ALWAYS reaches subscriber before the
+             // listener is removed in next line.
 
     eventloop.getSubscriber<std::string>("example2")->removeListener("listener");
     eventloop.stop();
@@ -183,7 +193,6 @@ Main thread ID: 140340523341696
 SimplePublisherClass (publisher) thread ID: 140340523341696
 Message received: Hello World!
 Eventloop (subscriber) thread ID: 140340523325184
-[2023-03-08 15:55:24.164] [info] Halting the batchEventProcessor
 ```
 
 <a name="example-3"></a>
@@ -194,30 +203,29 @@ Now, lets take a step further in the concept of separation of the application AP
 ```cpp
 class SumVectorData {
 public:
-   SumVectorData(kpsr::Subcriber<std::vector<float>> * subscriber,
-                  kpsr::Publisher<float> * publisher)
-      : _subcriber(subscriber)
-      , _publisher(publisher)
-      {
-         _subscriber->registerListener("sum_vector", [this](const std::vector<float> & event) {
+    SumVectorData(kpsr::Subscriber<std::vector<float>> *subscriber,
+                  kpsr::Publisher<float> *publisher)
+        : _subscriber(subscriber)
+        , _publisher(publisher)
+    {
+        _subscriber->registerListener("sum_vector", [this](const std::vector<float> &event) {
             float sum = calculateSum(event);
             _publisher->publish(sum);
-            std::cout << "SumVectorDataClass (subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
+            std::cout << "SumVectorDataClass (subscriber) thread ID: " << std::this_thread::get_id()
+                      << std::endl;
+        });
+    }
 
-         });
-      }
-
-   ~SumVectorData() {
-         _subscriber->removeListener("sum_vector");
-      }
+    ~SumVectorData() { _subscriber->removeListener("sum_vector"); }
 
 private:
-   kpsr::Subcriber<std::vector<float>> * _subscriber;
-   kpsr::Publisher<float> * _publisher;
+    kpsr::Subscriber<std::vector<float>> *_subscriber;
+    kpsr::Publisher<float> *_publisher;
 
-   float calculateSum(const std::vector<float> & event) {
-      return std::accumulate(event.begin(), event.end(), 0.0f);
-   }
+    float calculateSum(const std::vector<float> &event)
+    {
+        return std::accumulate(event.begin(), event.end(), 0.0f);
+    }
 }
 ```
 
@@ -229,29 +237,39 @@ Although this example is quite simple, testing of asynchronous application can b
 #include "gtest/gtest.h"
 
 #include "sum_vector_data.h"
+#include <klepsydra/core/cache_listener.h>
 #include <klepsydra/core/event_emitter_middleware_provider.h>
 
 TEST(SumVectorDataTest, NominalTest) {
-    kpsr::EventEmitterMiddlewareProvider<std::vector<float>> vectorProvider(nullptr, "vector_provider", 0, nullptr, nullptr);
+    kpsr::EventEmitterMiddlewareProvider<std::vector<float>> vectorProvider(nullptr,
+                                                                            "vector_provider",
+                                                                            0,
+                                                                            nullptr,
+                                                                            nullptr);
 
-    kpsr::EventEmitterMiddlewareProvider<float> sumProvider(nullptr, "sum_provider", 0, nullptr, nullptr);
+    kpsr::EventEmitterMiddlewareProvider<float> sumProvider(nullptr,
+                                                            "sum_provider",
+                                                            0,
+                                                            nullptr,
+                                                            nullptr);
 
-   {
-       SumVectorData sut(vectorProvider.getSubscriber(), sumProvider.getPublisher());
+    {
+        SumVectorData sut(vectorProvider.getSubscriber(), sumProvider.getPublisher());
 
-       kpsr::mem::CacheListener<float> eventListener;
+        kpsr::mem::CacheListener<float> eventListener;
 
-       sumProvider.getSubscriber()->registerListener("cacheListener", eventListener.cacheListenerFunction);
+        sumProvider.getSubscriber()->registerListener("cacheListener",
+                                                      eventListener.cacheListenerFunction);
 
-      std::vector<float> vector(10);
-      for (int i = 0; i < 10; i++) {
-         vector[i] = static_cast<float>(i);
-      }
+        std::vector<float> vector(10);
+        for (int i = 0; i < 10; i++) {
+            vector[i] = static_cast<float>(i + 1);
+        }
 
-      vectorProvider.getPublisher()->publish(vector);
+        vectorProvider.getPublisher()->publish(vector);
 
-      ASSERT_FLOAT_EQ(* eventListener.getLastReceivedEvent(), 45);
-   }
+        ASSERT_FLOAT_EQ(*eventListener.getLastReceivedEvent(), 55);
+    }
 }
 
 ```
@@ -272,43 +290,43 @@ Let us build now a running application for this class:
 
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
 
-int main() {
+int main() 
+{
+    std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
 
-   std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
+    kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
+    kpsr::Publisher<std::vector<float>> *vectorPublisher =
+        eventloop.getPublisher<std::vector<float>>("vector", 0, nullptr, nullptr);
 
-   kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
+    eventloop.start();
 
-   kpsr::Publisher<std::vector<float>> * vectorPublisher = eventloop.getPublisher<std::vector<float>>("vector", 0, nullptr, nullptr);
+    {
+        SumVectorData sumVectorData(eventloop.getSubscriber<std::vector<float>>("vector"),
+                                    eventloop.getPublisher<float>("sum", 0, nullptr, nullptr));
 
-   eventloop.start();
-
-   {
-      SumVectorData sumVectorData(
-            eventloop.getSubscriber<std::vector<float>>("vector"),
-            eventloop.getPublisher<float>("sum", 0, nullptr, nullptr));
-
-      eventloop.getSubscriber<float>()->registerListener("sum", [](const float & message) {
+        eventloop.getSubscriber<float>("sum")->registerListener("sum", [](const float &message) {
             std::cout << "Sum received: " << message << std::endl;
-            std::cout << "Eventeloop (subscriber) thread ID: " << std::this_thread::get_id() << std::endl;
-         }
-      );
+            std::cout << "Eventeloop (subscriber) ID thread : " << std::this_thread::get_id()
+                      << std::endl;
+        });
 
-       std::thread vectorPublisherThread([&vectorPublisher]() {
-          for (int i = 0; i < 100; i ++) {
-            std::vector<float> vector(10);
-            for (int j = 0; j < 10; j++) {
-               vector[j] = static_cast<float>(j);
+        std::thread vectorPublisherThread([&vectorPublisher]() {
+            for (int i = 0; i < 100; i++) {
+                std::vector<float> vector(10);
+                for (int j = 0; j < 10; j++) {
+                    vector[j] = static_cast<float>(j);
+                }
+                vectorPublisher->publish(vector);
+                std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                std::cout << "vectorPublisherThread thread ID: " << std::this_thread::get_id()
+                          << std::endl;
             }
-            vectorPublisher->publish(vector);
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
-            std::cout << "vectorPublisherThread thread ID: " << std::this_thread::get_id() << std::endl;
-         }
-       });
+        });
 
-       vectorPublisherThread.join();
+        vectorPublisherThread.join();
     }
 
-   eventloop.stop();
+    eventloop.stop();
 }
 ```
 
@@ -334,18 +352,21 @@ By using the ```publish(std::shared_ptr<const T> & event)``` API instead. This w
 
 ```cpp
    {
-       SumVectorData sut(vectorProvider.getSubscriber(), sumProvider.getPublisher());
+        SumVectorData sut(vectorProvider.getSubscriber(), sumProvider.getPublisher());
 
-       kpsr::mem::CacheListener<float> eventListener;
+        kpsr::mem::CacheListener<float> eventListener;
 
-       provider.getSubscriber()->registerListener("cacheListener", eventListener.cacheListenerFunction);
-       std::shared_ptr<std::vector<float>> vector(new std::vector<float>(10));
-       for (int i = 0; i < 10; i++) {
-           (*vector)[i] = static_cast<float>(i);
-       }
+        sumProvider.getSubscriber()->registerListener("cacheListener",
+                                                      eventListener.cacheListenerFunction);
 
-       vectorProvider.getPublisher()->publish(vector);
-       ASSERT_FLOAT_EQ(* newEventListener.getLastReceivedEvent(), 45);
+        std::shared_ptr<std::vector<float>> vector(new std::vector<float>(10));
+        for (int i = 0; i < 10; i++) {
+            (*vector)[i] = static_cast<float>(i + 1);
+        }
+
+        vectorProvider.getPublisher()->publish(vector);
+
+        ASSERT_FLOAT_EQ(*eventListener.getLastReceivedEvent(), 55);
    }
 ```
 
@@ -402,53 +423,49 @@ We have provided a small benchmarking example to demonstrate the performance ben
 
 ```cpp
 {
-        long totalExecutionTime = 0;
-        totalProcessed = 0;
-        totalLatency = 0;
-        long before = kpsr::TimeUtils::getCurrentMilliseconds();
-
-        spdlog::debug("starting benchmark...");
-
-        std::vector<std::thread> threads(0);
-        for (int index = 0; index < _numListeners; index++) {
-            threads.push_back(std::thread([this, index]() {
-                std::string name = "channel_" + std::to_string(index);
-                kpsr::Publisher<unsigned long long> *publisher =
-                    _eventLoop.getPublisher<unsigned long long>(name,
-                                                                _poolSize,
-                                                                nullptr,
-                                                                nullptr/*,
-                                                                _unsafeBufferPointer*/);
-                for (int i = 0; i < _numIterations; i++) {
-                    unsigned long long event = kpsr::TimeUtils::getCurrentNanosecondsAsLlu();
-                    publisher->publish(event);
-                    std::this_thread::sleep_for(std::chrono::microseconds(_sleepUS));
-                }
-            }));
-        }
-        long long unsigned int discardedMessages(0);
-        for (int i = 0; i < _numListeners; i++) {
-            threads[i].join();
-            std::string name = "channel_" + std::to_string(i);
-            auto eventLoopPublisher =
-                dynamic_cast<kpsr::high_performance::EventLoopPublisher<unsigned long long, 2048> *>(
-                    _eventLoop.getPublisher<unsigned long long>(name,
-                                                                _poolSize,
-                                                                nullptr,
-                                                                nullptr/*,
-                                                                _unsafeBufferPointer*/));
-            discardedMessages += eventLoopPublisher->_discardedMessages;
-        }
-
-        while (totalProcessed < (_numListeners * _numIterations - discardedMessages)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        spdlog::debug("finishing benchmark.");
-
-        long after = kpsr::TimeUtils::getCurrentMilliseconds();
-        totalExecutionTime = after - before;
-        return totalExecutionTime;
+    long totalExecutionTime = 0;
+    totalProcessed = 0;
+    totalLatency = 0;
+    long before = kpsr::TimeUtils::getCurrentMilliseconds();
+    spdlog::debug("starting benchmark...");
+    std::vector<std::thread> threads(0);
+    for (int index = 0; index < _numListeners; index++) {
+        threads.push_back(std::thread([this, index]() {
+            std::string name = "channel_" + std::to_string(index);
+            kpsr::Publisher<unsigned long long> *publisher =
+                _eventLoop.getPublisher<unsigned long long>(name,
+                                                            _poolSize,
+                                                            nullptr,
+                                                            nullptr/*,
+                                                            _unsafeBufferPointer*/);
+            for (int i = 0; i < _numIterations; i++) {
+                unsigned long long event = kpsr::TimeUtils::getCurrentNanosecondsAsLlu();
+                publisher->publish(event);
+                std::this_thread::sleep_for(std::chrono::microseconds(_sleepUS));
+            }
+        }));
     }
+    long long unsigned int discardedMessages(0);
+    for (int i = 0; i < _numListeners; i++) {
+        threads[i].join();
+        std::string name = "channel_" + std::to_string(i);
+        auto eventLoopPublisher =
+            dynamic_cast<kpsr::high_performance::EventLoopPublisher<unsigned long long, 2048> *>(
+                _eventLoop.getPublisher<unsigned long long>(name,
+                                                            _poolSize,
+                                                            nullptr,
+                                                            nullptr/*,
+                                                            _unsafeBufferPointer*/));
+        discardedMessages += eventLoopPublisher->_discardedMessages;
+    }
+    while (totalProcessed < (_numListeners * _numIterations - discardedMessages)) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    spdlog::debug("finishing benchmark.");
+    long after = kpsr::TimeUtils::getCurrentMilliseconds();
+    totalExecutionTime = after - before;
+    return totalExecutionTime;
+}
 ```
 
 <a name="example-5"></a>
@@ -457,32 +474,33 @@ We have provided a small benchmarking example to demonstrate the performance ben
 Let's look now at the second high performance API in Klepsydra: ```kpsr::high_perf::DataMultiplexerMiddlewareProvider```. This is a single-producer, multiple-consumer API for Klepsydra. We are going to extend example 3, so that we will have a second consumer of the vector that will calculate the module of the vector:
 
 ```cpp
-class ModuleVectorData {
+class ModuleVectorData
+{
 public:
-    ModuleVectorData(kpsr::Subcriber<std::vector<float>> * subscriber,
-                        kpsr::Publisher<float> * publisher)
-       : _subcriber(subscriber)
-       , _publisher(publisher)
-       {
-          _subscriber->registerListener("mod_vector", [this](const std::vector<float> & event) {
-             float module = calculateModule(event);
-             _publish->publish(module);
-             std::cout << "ModuleVectorDataClass (subscriber - mod) thread ID: " << std::this_thread::get_id() << std::endl;
-          });
-       }
+    ModuleVectorData(kpsr::Subscriber<std::vector<float>> *subscriber,
+                     kpsr::Publisher<float> *publisher)
+        : _subscriber(subscriber)
+        , _publisher(publisher)
+    {
+        _subscriber->registerListener("mod_vector", [this](const std::vector<float> &event) {
+            float module = calculateModule(event);
+            _publisher->publish(module);
+            std::cout << "ModuleVectorDataClass (subscriber - mod) thread ID: "
+                      << std::this_thread::get_id() << std::endl;
+        });
+    }
 
-    ~ ModuleVectorData() {
-         _subscriber->removeListener("mod_vector");
-      }
+    ~ModuleVectorData() { _subscriber->removeListener("mod_vector"); }
 
 private:
-    kpsr::Subcriber<std::vector<float>> * _subscriber;
-    kpsr::Publisher<float> * _publisher;
+    kpsr::Subscriber<std::vector<float>> *_subscriber;
+    kpsr::Publisher<float> *_publisher;
 
-    float calculateModule(const std::vector<float> & event) {
-      return sqrt(std::inner_product(event.begin(), event.end(),event.begin(), 0.0f));
-   }
-}
+    float calculateModule(const std::vector<float> &event)
+    {
+        return sqrt(std::inner_product(event.begin(), event.end(), event.begin(), 0.0f));
+    }
+};
 ```
 
 For the sake of brevity, we do not include the unit test for this class, but one is provided in the correspoding module of the tutorial repository.
@@ -498,47 +516,48 @@ Now, the assemblying in the main class:
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
 #include <klepsydra/high_performance/data_multiplexer_middleware_provider.h>
 
-int main() {
-    kpsr::high_performance::EventLoopMiddlewareProvider<16>eventloop(nullptr);
+int main() 
+{
+    kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
+    kpsr::high_performance::DataMultiplexerMiddlewareProvider<std::vector<float>, 4>
+        dataMultiplexer(nullptr, "example5");
 
-    kpsr::high_performance::DataMultiplexerMiddlewareProvider<std::vector<float>, 4> dataMultiplexer(nullptr, "example5", nullptr, nullptr);
-
-    kpsr::Publisher<std::vector<float>> * vectorPublisher = dataMultiplexer.getPublisher();
+    kpsr::Publisher<std::vector<float>> *vectorPublisher = dataMultiplexer.getPublisher();
 
     eventloop.start();
 
     {
-        SumVectorData sumVectorData(
-            dataMultiplexer.getSubscriber("vector"),
-            eventloop.getPublisher<float>("sum", 0, nullptr, nullptr));
-        eventloop.getSubscriber<float>()->registerListener("sum", [](const float & message) {
+        SumVectorData sumVectorData(dataMultiplexer.getSubscriber("vector"),
+                                    eventloop.getPublisher<float>("sum", 0, nullptr, nullptr));
+
+        eventloop.getSubscriber<float>("sum")->registerListener("sum", [](const float &message) {
             std::cout << "Sum received: " << message << std::endl;
-            std::cout << "Eventloop (subscriber - sum) thread ID: " << std::this_thread::get_id() << std::endl;
-         }
-      );
+            std::cout << "Eventloop (subscriber - sum) thread ID: " << std::this_thread::get_id()
+                      << std::endl;
+        });
 
-      ModuleVectorData moduleVectorData(
-            dataMultiplexer.getSubscriber("vector"),
-            eventloop.getPublisher<float>("mod", 0, nullptr, nullptr));
+        ModuleVectorData moduleVectorData(dataMultiplexer.getSubscriber("vector"),
+                                          eventloop.getPublisher<float>("mod", 0, nullptr, nullptr));
 
-      eventloop.getSubscriber<float>()->registerListener("mod", [](const float & message) {
+        eventloop.getSubscriber<float>("mod")->registerListener("mod", [](const float &message) {
             std::cout << "Module received: " << message << std::endl;
-            std::cout << "Eventloop (subscriber - mod) thread ID: " << std::this_thread::get_id() << std::endl;
-         }
-      );
-      std::thread vectorPublisherThread([&vectorPublisher]() {
-          for (int i = 0; i < 100; i ++) {
-            std::vector<float> vector(10);
-            for (int j = 0; j < 10; j++) {
-               vector[j] = static_cast<float>(j);
-            }
-            vectorPublisher->publish(vector);
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
-            std::cout << "vectorPublisherThread thread ID: " << std::this_thread::get_id() << std::endl;
-         }
-      });
+            std::cout << "Eventloop (subscriber - mod) thread ID: " << std::this_thread::get_id()
+                      << std::endl;
+        });
 
-       vectorPublisherThread.join();
+        std::thread vectorPublisherThread([&vectorPublisher]() {
+            for (int i = 0; i < 100; i++) {
+                std::vector<float> vector(10);
+                for (int j = 0; j < 10; j++) {
+                    vector[j] = static_cast<float>(j);
+                }
+                vectorPublisher->publish(vector);
+                std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                std::cout << "vectorPublisherThread thread ID: " << std::this_thread::get_id()
+                          << std::endl;
+            }
+        });
+        vectorPublisherThread.join();
     }
 
     std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
@@ -578,47 +597,48 @@ Alternatively, the same example can be run by separating the listeners and regis
 #include <klepsydra/high_performance/event_loop_middleware_provider.h>
 #include <klepsydra/high_performance/data_multiplexer_middleware_provider.h>
 
-int main() {
-    kpsr::high_performance::EventLoopMiddlewareProvider<16>eventloop(nullptr);
+int main() 
+{
+    kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
+    kpsr::high_performance::DataMultiplexerMiddlewareProvider<std::vector<float>, 4>
+        dataMultiplexer(nullptr, "example5");
 
-    kpsr::high_performance::DataMultiplexerMiddlewareProvider<std::vector<float>, 4> dataMultiplexer(nullptr, "example5", nullptr, nullptr);
-
-    kpsr::Publisher<std::vector<float>> * vectorPublisher = dataMultiplexer.getPublisher();
+    kpsr::Publisher<std::vector<float>> *vectorPublisher = dataMultiplexer.getPublisher();
 
     eventloop.start();
 
     {
-        SumVectorData sumVectorData(
-            dataMultiplexer.getSubscriber("sum"),
-            eventloop.getPublisher<float>("sum", 0, nullptr, nullptr));
-        eventloop.getSubscriber<float>()->registerListener("sum", [](const float & message) {
+        SumVectorData sumVectorData(dataMultiplexer.getSubscriber("vector"),
+                                    eventloop.getPublisher<float>("sum", 0, nullptr, nullptr));
+
+        eventloop.getSubscriber<float>("sum")->registerListener("sum", [](const float &message) {
             std::cout << "Sum received: " << message << std::endl;
-            std::cout << "Eventloop (subscriber - sum) thread ID: " << std::this_thread::get_id() << std::endl;
-         }
-      );
+            std::cout << "Eventloop (subscriber - sum) thread ID: " << std::this_thread::get_id()
+                      << std::endl;
+        });
 
-      ModuleVectorData moduleVectorData(
-            dataMultiplexer.getSubscriber("mod"),
-            eventloop.getPublisher<float>("mod", 0, nullptr, nullptr));
+        ModuleVectorData moduleVectorData(dataMultiplexer.getSubscriber("vector"),
+                                          eventloop.getPublisher<float>("mod", 0, nullptr, nullptr));
 
-      eventloop.getSubscriber<float>()->registerListener("mod", [](const float & message) {
+        eventloop.getSubscriber<float>("mod")->registerListener("mod", [](const float &message) {
             std::cout << "Module received: " << message << std::endl;
-            std::cout << "Eventloop (subscriber - mod) thread ID: " << std::this_thread::get_id() << std::endl;
-         }
-      );
-      std::thread vectorPublisherThread([&vectorPublisher]() {
-          for (int i = 0; i < 100; i ++) {
-            std::vector<float> vector(10);
-            for (int j = 0; j < 10; j++) {
-               vector[j] = static_cast<float>(j);
-            }
-            vectorPublisher->publish(vector);
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
-            std::cout << "vectorPublisherThread thread ID: " << std::this_thread::get_id() << std::endl;
-         }
-      });
+            std::cout << "Eventloop (subscriber - mod) thread ID: " << std::this_thread::get_id()
+                      << std::endl;
+        });
 
-       vectorPublisherThread.join();
+        std::thread vectorPublisherThread([&vectorPublisher]() {
+            for (int i = 0; i < 100; i++) {
+                std::vector<float> vector(10);
+                for (int j = 0; j < 10; j++) {
+                    vector[j] = static_cast<float>(j);
+                }
+                vectorPublisher->publish(vector);
+                std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                std::cout << "vectorPublisherThread thread ID: " << std::this_thread::get_id()
+                          << std::endl;
+            }
+        });
+        vectorPublisherThread.join();
     }
 
     std::cout << "Main thread ID: " << std::this_thread::get_id() << std::endl;
@@ -661,25 +681,24 @@ Very important to know is that the ```runOnce``` invokes the ```execute``` metho
 Let's start with the most basic publisher as a service.
 
 ```cpp
-class SimplePublisherService : public Service {
+class SimplePublisherService : public kpsr::Service
+{
 public:
-    SimplePublisherService(kpsr::Publisher<std::string> * publisher)
-    : Service(nullptr, "publisher_service")
-    , _publisher(publisher) {}
+    SimplePublisherService(kpsr::Publisher<std::string> *publisher)
+        : kpsr::Service(nullptr, nullptr, "publisher_service")
+        , _publisher(publisher)
+    {}
 
 protected:
-    void start() {}; // Empty on purpose
+    void start(){}; // Empty on purpose
 
-    void stop() {}; // Empty on purpose
+    void stop(){}; // Empty on purpose
 
-    void execute () {
-        _publisher->publish("Hello world");
-    }
+    void execute() { _publisher->publish("Hello world"); }
 
 private:
-
-    kpsr::Publisher<std::string>* _publisher;
-}
+    kpsr::Publisher<std::string> *_publisher;
+};
 ```
 
 Now this publisher service can be started using its startup() command, stopped using shutdown() command, and the runOnce() command will publish the intended message. Note that the publisher does not need any setup procedure and that is why the start and stop functions are empty.
@@ -689,27 +708,28 @@ Notice the constructor call of the service. The Service class needs three parame
 Similar to the publisher service we can have a basic subscriber as a service.
 
 ```cpp
-class SimpleSubscriberService : public Service {
-public
-    SimpleSubscriberService(kpsr::Subscriber<std::string> * subscriber)
-    : Service(nullptr, "subcriber_service")
-    ,_subscriber(subscriber) {}
+class SimpleSubscriberService : public kpsr::Service
+{
+public:
+    SimpleSubscriberService(kpsr::Subscriber<std::string> *subscriber)
+        : Service(nullptr, nullptr, "subcriber_service")
+        , _subscriber(subscriber)
+    {}
 
 protected:
-    void start() override {
-        _subscriber->registerListener("subcriber_service", [](const std::string & message) {
+    void start() override
+    {
+        _subscriber->registerListener("subscriber_service", [](const std::string &message) {
             std::cout << "Message received: " << message << std::endl;
         });
     }
 
-    void stop() override {
-        _subscriber->removeListener("subscriber_service");
-    }
+    void stop() override { _subscriber->removeListener("subscriber_service"); }
 
     void execute() {} // Empty on purpose.
 
 private:
-    kpsr::Subscriber<std::string> * _subscriber;
+    kpsr::Subscriber<std::string> *_subscriber;
 };
 ```
 
@@ -877,25 +897,23 @@ The managed service class constructor needs as input parameters the environment 
 
 ```cpp
 namespace kpsr {
-class ApplicationService: public ManagedService {
+class ApplicationService : public ManagedService
+{
 public:
-    ApplicationService(kpsr::Environment * environment,
-        kpsr::Subscriber<SystemEventData> * systemStatusEventSubscriber,
-        std::string const& serviceName)
-        : ManagedService(environment, systemStatusEventSubscriber, serviceName) {}
+    ApplicationService(kpsr::Environment *environment,
+                       kpsr::Subscriber<SystemEventData> *systemStatusEventSubscriber,
+                       std::string const &serviceName)
+        : ManagedService(environment, systemStatusEventSubscriber, serviceName)
+    {}
 
 protected:
-    void start() {
-        std::cout <<"Started cubesat";
-    }
+    void start() { std::cout << "Started application\n"; }
 
-    void stop() {
-        std::cout << "Stopping cubesat";
-    }
+    void stop() { std::cout << "Stopping application\n"; }
 
     void execute() {}
 };
-}
+} // namespace kpsr
 ```
 
 We provide an example (using the previously defined ControlService) along with a unit test (example6c.cpp)
@@ -914,27 +932,36 @@ So, in the next example a ```kpsr::EventTransformForwarder``` object obtains the
 #include <klepsydra/sdk/event_transform_forwarder.h>
 
 
-int main() {
-
+int main() 
+{
     kpsr::high_performance::EventLoopMiddlewareProvider<16> eventloop(nullptr);
 
-    kpsr::Publisher<std::string> * stringPublisher = eventloop.getPublisher<std::string>("string", 0, nullptr, nullptr);
-    kpsr::Subscriber<std::string> * stringSubscriber = eventloop.getSubscriber<std::string>("string");
+    kpsr::Publisher<std::string> *stringPublisher = eventloop.getPublisher<std::string>("string",
+                                                                                        0,
+                                                                                        nullptr,
+                                                                                        nullptr);
+    kpsr::Subscriber<std::string> *stringSubscriber = eventloop.getSubscriber<std::string>(
+        "string");
 
-    kpsr::Publisher<int> * sizeStringPublisher = eventloop.getPublisher<int>("size_string", 0, nullptr, nullptr);
-    kpsr::Subscriber<int> * sizeStringSubscriber = eventloop.getSubscriber<int>("size_string");
+    kpsr::Publisher<int> *sizeStringPublisher = eventloop.getPublisher<int>("size_string",
+                                                                            0,
+                                                                            nullptr,
+                                                                            nullptr);
+    kpsr::Subscriber<int> *sizeStringSubscriber = eventloop.getSubscriber<int>("size_string");
 
     eventloop.start();
 
     {
-        kpsr::EventTransformForwarder<std::string, int> eventTransformer([](const std::string & eventString, int & transformed) {
-                                                                         transformed = eventString.size(); },
-                                                                         sizeStringPublisher);
+        kpsr::EventTransformForwarder<std::string, int>
+            eventTransformer([](const std::string &eventString,
+                                int &transformed) { transformed = eventString.size(); },
+                             sizeStringPublisher);
 
-        stringSubscriber->registerListener("transformer", eventTransformer.forwarderListenerFunction);
-        sizeStringSubscriber->registerListener("output_listener", [](const int & event){
-                                                 std::cout << "The size of the string received is: " << event << std::endl;
-                                                 });
+        stringSubscriber->registerListener("transformer",
+                                           eventTransformer.forwarderListenerFunction);
+        sizeStringSubscriber->registerListener("print_output_listener", [](const int &event) {
+            std::cout << "The size of the string received is: " << event << std::endl;
+        });
 
         std::thread stringPublisherThread([&stringPublisher]() {
             stringPublisher->publish("Example");

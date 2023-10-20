@@ -392,6 +392,8 @@ The `StateMachineListener` allows us to add actions easily rather than creating 
 
 #include <spdlog/spdlog.h>
 
+#include "simple_state_machine.h"
+
 struct LastStateObserver
 {
     std::string _currentState;
@@ -406,27 +408,12 @@ struct LastStateObserver
 
 int main()
 {
-    // Define transitions
-    kpsr::fsm::ConfigTransition transition1 = {"st2", "event1"};
-    kpsr::fsm::ConfigTransition transition2 = {"st3", "event2"};
-    kpsr::fsm::ConfigTransition transition3 = {"st1", "event3"};
-
-    // Define states
-    kpsr::fsm::ConfigState state1 = {"st1",
-                                     std::vector<kpsr::fsm::ConfigTransition>{transition1,
-                                                                              transition2}};
-    kpsr::fsm::ConfigState state2 = {"st2", std::vector<kpsr::fsm::ConfigTransition>{transition3}};
-    kpsr::fsm::ConfigState state3 = {"st3", std::vector<kpsr::fsm::ConfigTransition>{transition1}};
-
-    kpsr::fsm::ConfigStateMachine configStateMachine;
-    configStateMachine.id = "exampleStateMachine";
-
-    configStateMachine.states = std::vector<kpsr::fsm::ConfigState>{state1, state2, state3};
+    SimpleStateMachine exampleStateMachine;
 
     kpsr::fsm::SMFactoryImpl smFactory;
-    auto stateMachine = smFactory.createStateMachine(configStateMachine);
+    auto stateMachine = smFactory.createStateMachine(exampleStateMachine.configStateMachine);
 
-    kpsr::fsm::StateMachineListener smListener(configStateMachine.id);
+    kpsr::fsm::StateMachineListener smListener(exampleStateMachine.configStateMachine.id);
 
     smListener.addPeriodicAction("st1", [](const std::string &currentState) {
         std::cout << "CoutObserver::First state " << std::endl;

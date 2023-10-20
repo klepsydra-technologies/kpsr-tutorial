@@ -36,7 +36,7 @@ The CMakeLists file in this repository has been configured to run the
 following command:
 
 ```
-kpsr_codegen -i kidl -o gen klepsydra/tutorial -r True -z True -d True
+kpsr_codegen -i kidl -o gen klepsydra/tutorial -r False -z True -d True
 ```
 
 The header files generated should then be included where the messages

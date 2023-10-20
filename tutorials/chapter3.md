@@ -59,25 +59,30 @@ We define functions that define what actions need to be done when
 battery values are received. For example, the function on receiving
 battery values is:
 
-```
-void kpsr::ControlService::onBatteryReceived(const kpsr::sensors::BatteryState & batteryData) {
+```cpp
+void kpsr::ControlService::onBatteryReceived(const kpsr::sensors::BatteryState &batteryData)
+{
     _batteryValue = batteryData.percentage;
-    if ((kpsr::BATTERY_THRESHOLD_LOW >= _batteryValue) &&
-        (_status != kpsr::SystemEventData::Stop)) {
+    if ((kpsr::BATTERY_THRESHOLD_LOW >= _batteryValue) && (_status != kpsr::SystemEventData::Stop)) {
+        _batteryOk = kpsr::SystemEventData::Stop;
         _status = kpsr::SystemEventData::Stop;
         _systemEventPublisher->publish(_status);
+    } else if ((kpsr::BATTERY_THRESHOLD_LOW_START <= _batteryValue) &&
+               (_status != kpsr::SystemEventData::Start)) {
+        _batteryOk = kpsr::SystemEventData::Start;
+        if (_temperatureOk != kpsr::SystemEventData::Stop) {
+            // This ensures that start is sent only when both battery
+            // and temperature are in range.
+            _status = kpsr::SystemEventData::Start;
+            _systemEventPublisher->publish(_status);
         }
-    else if ((kpsr::BATTERY_THRESHOLD_LOW_START <= _batteryValue) &&
-             (_status != kpsr::SystemEventData::Start)) {
-        _status = kpsr::SystemEventData::Start;
-        _systemEventPublisher->publish(_status);
     }
 }
 ```
 
 This "Listener" function is bound to the subscriber using std::bind and the `registerListener` method of the `Subscriber` class. For example:
 
-```
+```cpp
 std::function<void(kpsr::sensors::BatteryState)> batteryListenerFn = std::bind(
     &ControlService::onBatteryReceived, this, std::placeholders::_1);
 _batterySubscriber->registerListener("batteryCacheListener", batteryListenerFn);

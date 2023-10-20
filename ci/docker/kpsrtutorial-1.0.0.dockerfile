@@ -34,7 +34,7 @@ RUN git clone https://github.com/klepsydra-technologies/kpsr-codegen.git && \
     cd kpsr-codegen && \
     git checkout ${KPSRCODEGENVERSION} && \
     python3 -m build --outdir dist && \
-    pip3 install dist/kpsr_codegen-1.0-py3-none-any.whl && \
+    pip3 install -I --find-links dist kpsr_codegen && \
     cd ../../ && \
     rm -rf kpsr-codegen
 

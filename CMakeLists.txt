@@ -82,7 +82,7 @@ find_package(Klepsydra 11 REQUIRED)
 include(KpsrCodeGen)
 kpsreventgenerator(
     "${CMAKE_CURRENT_SOURCE_DIR}/kidl" "${CMAKE_CURRENT_SOURCE_DIR}/gen"
-    "klepsydra/tutorial" "False" "True" "True")
+    "klepsydra/tutorial" "False" "True")
 
 # Must use GNUInstallDirs to install libraries into correct locations on all
 # platforms.

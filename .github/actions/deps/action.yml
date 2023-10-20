@@ -53,6 +53,6 @@ runs:
       run: |
         pip3 install build
         python3 -m build --outdir dist
-        pip3 install dist/kpsr_codegen-1.0-py3-none-any.whl
+        pip3 install -I --find-links dist kpsr_codegen
         cd ../ && rm -rf kpsr-codegen/
       working-directory: kpsr-codegen

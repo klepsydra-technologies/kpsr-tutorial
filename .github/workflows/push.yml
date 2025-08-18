@@ -36,7 +36,7 @@ jobs:
       image: ghcr.io/klepsydra-technologies/kpsrbase:1.0.0
     steps:
       - name: Clone project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
 
